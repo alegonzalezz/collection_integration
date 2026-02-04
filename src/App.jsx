@@ -17,11 +17,13 @@ function App() {
     }))
   }
 
+
+
   const handleAddRequest = (useCaseId, request) => {
     setCollection(prev => ({
       ...prev,
-      item: prev.item.map(uc => 
-        uc.name === useCaseId 
+      item: prev.item.map(uc =>
+        uc.name === useCaseId
           ? { ...uc, item: [...uc.item, request] }
           : uc
       )
@@ -32,8 +34,8 @@ function App() {
     const cleanRequestId = selectedRequestId
     setCollection(prev => ({
       ...prev,
-      item: prev.item.map(uc => 
-        uc.name === useCaseId 
+      item: prev.item.map(uc =>
+        uc.name === useCaseId
           ? { ...uc, item: uc.item.filter(r => r.name !== requestId) }
           : uc
       )
