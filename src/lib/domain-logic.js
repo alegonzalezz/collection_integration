@@ -58,6 +58,20 @@ const generateStatusCodeTest = (testName, statusCode) => {
 };
 
 /**
+ * Genera el código JavaScript para un test de JSON path
+ * @param {string} testName - Nombre del test
+ * @param {string} jsonPath - Path dentro del JSON (ej: "data.name", "users[0].id")
+ * @param {string} expectedValue - Valor esperado
+ * @returns {string} - Código JavaScript del test
+ */
+const generateJsonPathTest = (testName, jsonPath, expectedValue) => {
+  // Escapar el valor esperado para que sea válido en JavaScript
+  const escapedValue = typeof expectedValue === 'string' ? `"${expectedValue}"` : expectedValue;
+  
+  return `pm.test("${testName}", function () {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.${jsonPath}).to.eql(${escapedValue});\n});`;
+};
+
+/**
  * Agrega un test a una request existente
  * @param {Object} request - La request a la que agregar el test
  * @param {string} testName - Nombre del test
@@ -117,6 +131,7 @@ export {
   createRequest, 
   exportCollection,
   generateStatusCodeTest,
+  generateJsonPathTest,
   addTestToRequest,
   removeTestFromRequest
 };

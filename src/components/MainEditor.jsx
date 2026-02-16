@@ -1,11 +1,18 @@
 import { useState, useMemo } from 'react'
-import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle } from 'lucide-react'
-import { generateStatusCodeTest } from '../lib/domain-logic'
+import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle, GitBranch } from 'lucide-react'
+import { generateStatusCodeTest, generateJsonPathTest } from '../lib/domain-logic'
 
 const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode }) => {
   const [activeTab, setActiveTab] = useState('headers')
+  
+  // Estado para tests de status code
   const [newTestName, setNewTestName] = useState('')
   const [newTestStatusCode, setNewTestStatusCode] = useState('200')
+  
+  // Estado para tests de JSON path
+  const [jsonPathTestName, setJsonPathTestName] = useState('')
+  const [jsonPath, setJsonPath] = useState('')
+  const [expectedValue, setExpectedValue] = useState('')
 
   const requestData = useMemo(() => {
     if (!selectedRequestId || !selectedUseCaseId) return null
@@ -79,7 +86,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
     })
   }
 
-  const handleAddTest = () => {
+  const handleAddStatusCodeTest = () => {
     if (!newTestName.trim()) return
     
     const statusCode = parseInt(newTestStatusCode, 10) || 200
@@ -102,6 +109,35 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
     // Limpiar el formulario
     setNewTestName('')
     setNewTestStatusCode('200')
+  }
+
+  const handleAddJsonPathTest = () => {
+    if (!jsonPathTestName.trim() || !jsonPath.trim()) return
+    
+    const testCode = generateJsonPathTest(
+      jsonPathTestName.trim(), 
+      jsonPath.trim(), 
+      expectedValue.trim()
+    )
+    
+    const updatedTests = [...requestData.tests, testCode]
+    
+    onUpdateRequest(selectedRequestId, {
+      event: [
+        {
+          listen: 'test',
+          script: {
+            exec: updatedTests,
+            type: 'text/javascript'
+          }
+        }
+      ]
+    })
+    
+    // Limpiar el formulario
+    setJsonPathTestName('')
+    setJsonPath('')
+    setExpectedValue('')
   }
 
   const handleRemoveTest = (index) => {
@@ -299,11 +335,14 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
 
           {activeTab === 'tests' && (
             <div className="space-y-6">
-              {/* Formulario para agregar test */}
+              {/* Formulario para agregar test de Status Code */}
               <div className={`p-4 rounded-xl border ${darkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'}`}>
-                <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                  Agregar Test de Status Code
-                </h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Code className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
+                  <h3 className={`text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Test de Status Code
+                  </h3>
+                </div>
                 <div className="flex gap-3 items-end">
                   <div className="flex-1">
                     <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -330,7 +369,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                     />
                   </div>
                   <button
-                    onClick={handleAddTest}
+                    onClick={handleAddStatusCodeTest}
                     disabled={!newTestName.trim()}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
                       !newTestName.trim()
@@ -340,6 +379,68 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                   >
                     <Plus className="w-4 h-4" />
                     Agregar
+                  </button>
+                </div>
+              </div>
+
+              {/* Formulario para agregar test de JSON Path */}
+              <div className={`p-4 rounded-xl border ${darkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <GitBranch className={`w-4 h-4 ${darkMode ? 'text-purple-400' : 'text-purple-500'}`} />
+                  <h3 className={`text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Test de JSON Path
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Nombre del Test
+                    </label>
+                    <input
+                      type="text"
+                      value={jsonPathTestName}
+                      onChange={(e) => setJsonPathTestName(e.target.value)}
+                      placeholder="Ej: Validar nombre del usuario"
+                      className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        JSON Path
+                      </label>
+                      <input
+                        type="text"
+                        value={jsonPath}
+                        onChange={(e) => setJsonPath(e.target.value)}
+                        placeholder="Ej: data.name, response[0].id"
+                        className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        Valor Esperado
+                      </label>
+                      <input
+                        type="text"
+                        value={expectedValue}
+                        onChange={(e) => setExpectedValue(e.target.value)}
+                        placeholder="Ej: John Doe, 123, true"
+                        className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleAddJsonPathTest}
+                    disabled={!jsonPathTestName.trim() || !jsonPath.trim()}
+                    className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+                      !jsonPathTestName.trim() || !jsonPath.trim()
+                        ? 'opacity-50 cursor-not-allowed ' + (darkMode ? 'bg-slate-700 text-slate-500' : 'bg-slate-200 text-slate-400')
+                        : (darkMode ? 'bg-purple-600 hover:bg-purple-500 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white')
+                    }`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Agregar Test de JSON Path
                   </button>
                 </div>
               </div>
@@ -396,7 +497,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                 <div className={`text-center py-8 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
                   <Zap className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p className="text-sm">No hay tests agregados</p>
-                  <p className="text-xs mt-1">Agrega un test usando el formulario de arriba</p>
+                  <p className="text-xs mt-1">Agrega un test usando uno de los formularios de arriba</p>
                 </div>
               )}
             </div>
