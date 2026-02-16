@@ -545,33 +545,68 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
               {/* Lista de tests agregados */}
               {requestData.tests.length > 0 && (
                 <div className="space-y-2">
-                  <h3 className={`text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                    Tests Agregados ({requestData.tests.length})
-                  </h3>
-                  {requestData.tests.map((test, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border border-slate-600' : 'bg-slate-50 border border-slate-200'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
-                        <div>
-                          <p className={`text-sm font-medium ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                            Test #{index + 1}
-                          </p>
-                          <p className={`text-xs font-mono ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                            {test.split('\n')[0].replace('pm.test("', '').replace('",', '')}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveTest(index)}
-                        className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${darkMode ? 'text-rose-400 hover:bg-rose-900/30' : 'text-rose-500 hover:bg-rose-50'}`}
+                  <div className="flex items-center justify-between">
+                    <h3 className={`text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                      Tests ({requestData.tests.length})
+                    </h3>
+                    <span className={`text-xs ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                      {requestData.tests.filter(t => t.includes('pm.test')).length} tests pm.test
+                    </span>
+                  </div>
+                  {requestData.tests.map((test, index) => {
+                    // Detectar el tipo de test
+                    let testType = 'code'
+                    let typeColor = darkMode ? 'text-blue-400' : 'text-blue-500'
+                    let typeLabel = 'Código'
+                    
+                    if (test.includes('.to.have.status(')) {
+                      testType = 'status'
+                      typeColor = darkMode ? 'text-blue-400' : 'text-blue-500'
+                      typeLabel = 'Status'
+                    } else if (test.includes('.length)')) {
+                      testType = 'array'
+                      typeColor = darkMode ? 'text-orange-400' : 'text-orange-500'
+                      typeLabel = 'Array'
+                    } else if (test.includes('.to.eql(')) {
+                      testType = 'json'
+                      typeColor = darkMode ? 'text-purple-400' : 'text-purple-500'
+                      typeLabel = 'JSON'
+                    }
+                    
+                    // Extraer nombre del test
+                    const testNameMatch = test.match(/pm\.test\("([^"]+)"/,)
+                    const testName = testNameMatch ? testNameMatch[1] : `Test #${index + 1}`
+                    
+                    return (
+                      <div
+                        key={index}
+                        className={`flex items-start justify-between p-3 rounded-xl transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border border-slate-600' : 'bg-slate-50 border border-slate-200'}`}
                       >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <CheckCircle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className={`text-sm font-medium truncate ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                                {testName}
+                              </p>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${darkMode ? 'bg-slate-600' : 'bg-slate-200'} ${typeColor}`}>
+                                {typeLabel}
+                              </span>
+                            </div>
+                            <p className={`text-xs font-mono mt-1 truncate ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                              {test.split('\n').slice(1, -1).join(' ').trim()}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveTest(index)}
+                          className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 flex-shrink-0 ml-2 ${darkMode ? 'text-rose-400 hover:bg-rose-900/30' : 'text-rose-500 hover:bg-rose-50'}`}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 

@@ -136,11 +136,148 @@ const removeTestFromRequest = (request, testIndex) => {
   };
 };
 
+/**
+ * Importa una collection de Postman desde un archivo JSON
+ * @param {Object} jsonData - El objeto JSON parseado de la collection
+ * @returns {Object} - Collection estructurada para la aplicación
+ */
+const importCollection = (jsonData) => {
+  // Validar estructura básica
+  if (!jsonData || typeof jsonData !== 'object') {
+    throw new Error('Invalid JSON format');
+  }
+
+  // Crear estructura base
+  const collection = {
+    info: {
+      name: jsonData.info?.name || 'Imported Collection',
+      schema: jsonData.info?.schema || 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
+    },
+    item: []
+  };
+
+  // Procesar items (casos de uso o requests directos)
+  if (Array.isArray(jsonData.item)) {
+    jsonData.item.forEach(item => {
+      // Si tiene propiedad 'item', es un folder/caso de uso
+      if (item.item && Array.isArray(item.item)) {
+        const useCase = {
+          name: item.name || 'Unnamed Folder',
+          item: [],
+          protocolProfileBehavior: item.protocolProfileBehavior || {}
+        };
+
+        // Procesar requests dentro del folder
+        item.item.forEach(subItem => {
+          if (subItem.request) {
+            const request = parseRequest(subItem);
+            useCase.item.push(request);
+          }
+        });
+
+        collection.item.push(useCase);
+      } else if (item.request) {
+        // Es una request directa sin folder, creamos un folder default
+        let defaultFolder = collection.item.find(uc => uc.name === 'Default');
+        if (!defaultFolder) {
+          defaultFolder = {
+            name: 'Default',
+            item: [],
+            protocolProfileBehavior: {}
+          };
+          collection.item.push(defaultFolder);
+        }
+        
+        const request = parseRequest(item);
+        defaultFolder.item.push(request);
+      }
+    });
+  }
+
+  return collection;
+};
+
+/**
+ * Parsea una request de Postman al formato de la aplicación
+ * @param {Object} item - El item de la collection
+ * @returns {Object} - Request parseada
+ */
+const parseRequest = (item) => {
+  const request = item.request;
+  
+  // Parsear URL
+  let url = '';
+  if (typeof request.url === 'string') {
+    url = request.url;
+  } else if (request.url && typeof request.url === 'object') {
+    url = request.url.raw || request.url.host?.join('.') || '';
+  }
+
+  // Parsear headers
+  const headers = Array.isArray(request.header) 
+    ? request.header.map(h => ({ key: h.key || '', value: h.value || '' }))
+    : [];
+
+  // Parsear body
+  let body = { mode: 'raw', raw: '' };
+  if (request.body) {
+    body = {
+      mode: request.body.mode || 'raw',
+      raw: request.body.raw || ''
+    };
+  }
+
+  // Parsear eventos (tests)
+  const events = [];
+  if (Array.isArray(item.event)) {
+    item.event.forEach(event => {
+      if (event.listen === 'test' && event.script) {
+        const exec = Array.isArray(event.script.exec) 
+          ? event.script.exec 
+          : [event.script.exec || ''];
+        events.push({
+          listen: 'test',
+          script: {
+            exec: exec,
+            type: event.script.type || 'text/javascript'
+          }
+        });
+      }
+    });
+  }
+
+  // Si no hay eventos, agregar uno vacío por defecto
+  if (events.length === 0) {
+    events.push({
+      listen: 'test',
+      script: {
+        exec: [],
+        type: 'text/javascript'
+      }
+    });
+  }
+
+  return {
+    name: item.name || 'Unnamed Request',
+    request: {
+      method: request.method || 'GET',
+      header: headers,
+      url: { 
+        raw: url, 
+        host: url ? [url] : [] 
+      },
+      body: body
+    },
+    event: events
+  };
+};
+
 export { 
   emptyCollection, 
   createUseCase, 
   createRequest, 
   exportCollection,
+  importCollection,
   generateStatusCodeTest,
   generateJsonPathTest,
   generateArrayLengthTest,
