@@ -1,8 +1,11 @@
 import { useState, useMemo } from 'react'
-import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode } from 'lucide-react'
+import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle } from 'lucide-react'
+import { generateStatusCodeTest } from '../lib/domain-logic'
 
 const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode }) => {
   const [activeTab, setActiveTab] = useState('headers')
+  const [newTestName, setNewTestName] = useState('')
+  const [newTestStatusCode, setNewTestStatusCode] = useState('200')
 
   const requestData = useMemo(() => {
     if (!selectedRequestId || !selectedUseCaseId) return null
@@ -16,7 +19,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
       url: request.request.url?.raw || '',
       headers: request.request.header || [],
       body: request.request.body?.raw || '',
-      tests: request.event?.[0]?.script?.exec?.join('\n') || ''
+      tests: request.event?.[0]?.script?.exec || []
     }
   }, [selectedRequestId, selectedUseCaseId, collection])
 
@@ -76,13 +79,40 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
     })
   }
 
-  const handleTestsChange = (value) => {
+  const handleAddTest = () => {
+    if (!newTestName.trim()) return
+    
+    const statusCode = parseInt(newTestStatusCode, 10) || 200
+    const testCode = generateStatusCodeTest(newTestName.trim(), statusCode)
+    
+    const updatedTests = [...requestData.tests, testCode]
+    
     onUpdateRequest(selectedRequestId, {
       event: [
         {
           listen: 'test',
           script: {
-            exec: value.split('\n'),
+            exec: updatedTests,
+            type: 'text/javascript'
+          }
+        }
+      ]
+    })
+    
+    // Limpiar el formulario
+    setNewTestName('')
+    setNewTestStatusCode('200')
+  }
+
+  const handleRemoveTest = (index) => {
+    const updatedTests = requestData.tests.filter((_, i) => i !== index)
+    
+    onUpdateRequest(selectedRequestId, {
+      event: [
+        {
+          listen: 'test',
+          script: {
+            exec: updatedTests,
             type: 'text/javascript'
           }
         }
@@ -268,19 +298,107 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
           )}
 
           {activeTab === 'tests' && (
-            <div className="relative">
-              <textarea
-                value={requestData.tests}
-                onChange={(e) => handleTestsChange(e.target.value)}
-                placeholder="Enter test scripts (JavaScript)"
-                className={`w-full h-80 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono resize-none ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
-              />
-              <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-blue-900/30 text-blue-400 border border-blue-700' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}>
-                <div className="flex items-center gap-1.5">
-                  <Zap className="w-3 h-3" />
-                  JavaScript
+            <div className="space-y-6">
+              {/* Formulario para agregar test */}
+              <div className={`p-4 rounded-xl border ${darkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'}`}>
+                <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Agregar Test de Status Code
+                </h3>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Nombre del Test
+                    </label>
+                    <input
+                      type="text"
+                      value={newTestName}
+                      onChange={(e) => setNewTestName(e.target.value)}
+                      placeholder="Ej: Status code is 200"
+                      className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                    />
+                  </div>
+                  <div className="w-24">
+                    <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Status Code
+                    </label>
+                    <input
+                      type="number"
+                      value={newTestStatusCode}
+                      onChange={(e) => setNewTestStatusCode(e.target.value)}
+                      placeholder="200"
+                      className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddTest}
+                    disabled={!newTestName.trim()}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
+                      !newTestName.trim()
+                        ? 'opacity-50 cursor-not-allowed ' + (darkMode ? 'bg-slate-700 text-slate-500' : 'bg-slate-200 text-slate-400')
+                        : (darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white')
+                    }`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Agregar
+                  </button>
                 </div>
               </div>
+
+              {/* Lista de tests agregados */}
+              {requestData.tests.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className={`text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Tests Agregados ({requestData.tests.length})
+                  </h3>
+                  {requestData.tests.map((test, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border border-slate-600' : 'bg-slate-50 border border-slate-200'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                        <div>
+                          <p className={`text-sm font-medium ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                            Test #{index + 1}
+                          </p>
+                          <p className={`text-xs font-mono ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                            {test.split('\n')[0].replace('pm.test("', '').replace('",', '')}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveTest(index)}
+                        className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${darkMode ? 'text-rose-400 hover:bg-rose-900/30' : 'text-rose-500 hover:bg-rose-50'}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Vista previa del código */}
+              {requestData.tests.length > 0 && (
+                <div className="relative">
+                  <h3 className={`text-sm font-semibold mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Código Generado
+                  </h3>
+                  <pre className={`w-full p-4 rounded-xl text-xs font-mono overflow-x-auto ${darkMode ? 'bg-slate-900 border-slate-700 text-slate-300' : 'bg-slate-900 border-slate-800 text-slate-300'} border`}>
+                    <code>{requestData.tests.join('\n\n')}</code>
+                  </pre>
+                  <div className={`absolute top-8 right-4 px-2 py-1 rounded text-xs ${darkMode ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                    JavaScript
+                  </div>
+                </div>
+              )}
+
+              {requestData.tests.length === 0 && (
+                <div className={`text-center py-8 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <Zap className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">No hay tests agregados</p>
+                  <p className="text-xs mt-1">Agrega un test usando el formulario de arriba</p>
+                </div>
+              )}
             </div>
           )}
         </div>

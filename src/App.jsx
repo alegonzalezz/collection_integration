@@ -54,10 +54,28 @@ function App() {
         if (requestIndex !== -1) {
           found = true
           const updatedRequests = [...uc.item]
-          const updatedRequest = {
-            ...uc.item[requestIndex],
-            ...(updates.request ? { request: { ...uc.item[requestIndex].request, ...updates.request } } : updates)
+          const currentRequest = uc.item[requestIndex]
+          
+          // Manejar actualización de request (headers, body, url, method)
+          let updatedRequest = { ...currentRequest }
+          
+          if (updates.request) {
+            updatedRequest.request = {
+              ...currentRequest.request,
+              ...updates.request
+            }
           }
+          
+          // Manejar actualización de eventos (tests)
+          if (updates.event) {
+            updatedRequest.event = updates.event
+          }
+          
+          // Manejar otros campos como name
+          if (updates.name !== undefined) {
+            updatedRequest.name = updates.name
+          }
+          
           updatedRequests[requestIndex] = updatedRequest
           return { ...uc, item: updatedRequests }
         }
