@@ -72,6 +72,17 @@ const generateJsonPathTest = (testName, jsonPath, expectedValue) => {
 };
 
 /**
+ * Genera el código JavaScript para un test de longitud de array
+ * @param {string} testName - Nombre del test
+ * @param {string} arrayPath - Path al array (ej: "data.users", "items")
+ * @param {number} expectedLength - Cantidad esperada de elementos
+ * @returns {string} - Código JavaScript del test
+ */
+const generateArrayLengthTest = (testName, arrayPath, expectedLength) => {
+  return `pm.test("${testName}", function () {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.${arrayPath}.length).to.eql(${expectedLength});\n});`;
+};
+
+/**
  * Agrega un test a una request existente
  * @param {Object} request - La request a la que agregar el test
  * @param {string} testName - Nombre del test
@@ -132,6 +143,7 @@ export {
   exportCollection,
   generateStatusCodeTest,
   generateJsonPathTest,
+  generateArrayLengthTest,
   addTestToRequest,
   removeTestFromRequest
 };

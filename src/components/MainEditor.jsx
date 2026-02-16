@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
-import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle, GitBranch } from 'lucide-react'
-import { generateStatusCodeTest, generateJsonPathTest } from '../lib/domain-logic'
+import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle, GitBranch, List } from 'lucide-react'
+import { generateStatusCodeTest, generateJsonPathTest, generateArrayLengthTest } from '../lib/domain-logic'
 
 const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode }) => {
   const [activeTab, setActiveTab] = useState('headers')
@@ -13,6 +13,11 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
   const [jsonPathTestName, setJsonPathTestName] = useState('')
   const [jsonPath, setJsonPath] = useState('')
   const [expectedValue, setExpectedValue] = useState('')
+  
+  // Estado para tests de longitud de array
+  const [arrayLengthTestName, setArrayLengthTestName] = useState('')
+  const [arrayPath, setArrayPath] = useState('')
+  const [expectedArrayLength, setExpectedArrayLength] = useState('')
 
   const requestData = useMemo(() => {
     if (!selectedRequestId || !selectedUseCaseId) return null
@@ -138,6 +143,36 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
     setJsonPathTestName('')
     setJsonPath('')
     setExpectedValue('')
+  }
+
+  const handleAddArrayLengthTest = () => {
+    if (!arrayLengthTestName.trim() || !arrayPath.trim() || !expectedArrayLength.trim()) return
+    
+    const length = parseInt(expectedArrayLength, 10) || 0
+    const testCode = generateArrayLengthTest(
+      arrayLengthTestName.trim(), 
+      arrayPath.trim(), 
+      length
+    )
+    
+    const updatedTests = [...requestData.tests, testCode]
+    
+    onUpdateRequest(selectedRequestId, {
+      event: [
+        {
+          listen: 'test',
+          script: {
+            exec: updatedTests,
+            type: 'text/javascript'
+          }
+        }
+      ]
+    })
+    
+    // Limpiar el formulario
+    setArrayLengthTestName('')
+    setArrayPath('')
+    setExpectedArrayLength('')
   }
 
   const handleRemoveTest = (index) => {
@@ -441,6 +476,68 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                   >
                     <Plus className="w-4 h-4" />
                     Agregar Test de JSON Path
+                  </button>
+                </div>
+              </div>
+
+              {/* Formulario para agregar test de Longitud de Array */}
+              <div className={`p-4 rounded-xl border ${darkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <List className={`w-4 h-4 ${darkMode ? 'text-orange-400' : 'text-orange-500'}`} />
+                  <h3 className={`text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Test de Longitud de Array
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Nombre del Test
+                    </label>
+                    <input
+                      type="text"
+                      value={arrayLengthTestName}
+                      onChange={(e) => setArrayLengthTestName(e.target.value)}
+                      placeholder="Ej: Validar cantidad de usuarios"
+                      className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        Path del Array
+                      </label>
+                      <input
+                        type="text"
+                        value={arrayPath}
+                        onChange={(e) => setArrayPath(e.target.value)}
+                        placeholder="Ej: data.users, items"
+                        className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                      />
+                    </div>
+                    <div className="w-28">
+                      <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        Cantidad
+                      </label>
+                      <input
+                        type="number"
+                        value={expectedArrayLength}
+                        onChange={(e) => setExpectedArrayLength(e.target.value)}
+                        placeholder="5"
+                        className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleAddArrayLengthTest}
+                    disabled={!arrayLengthTestName.trim() || !arrayPath.trim() || !expectedArrayLength.trim()}
+                    className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+                      !arrayLengthTestName.trim() || !arrayPath.trim() || !expectedArrayLength.trim()
+                        ? 'opacity-50 cursor-not-allowed ' + (darkMode ? 'bg-slate-700 text-slate-500' : 'bg-slate-200 text-slate-400')
+                        : (darkMode ? 'bg-orange-600 hover:bg-orange-500 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white')
+                    }`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Agregar Test de Longitud de Array
                   </button>
                 </div>
               </div>
