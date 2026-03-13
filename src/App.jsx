@@ -78,6 +78,11 @@ function App() {
             updatedRequest.name = updates.name
           }
           
+          // Manejar protocolProfileBehavior
+          if (updates.protocolProfileBehavior !== undefined) {
+            updatedRequest.protocolProfileBehavior = updates.protocolProfileBehavior
+          }
+          
           updatedRequests[requestIndex] = updatedRequest
           return { ...uc, item: updatedRequests }
         }

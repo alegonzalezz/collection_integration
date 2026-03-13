@@ -17,10 +17,14 @@ const createUseCase = (name) => ({
   protocolProfileBehavior: {}
 });
 
-const createRequest = (name, method = "GET", url = "") => {
+const createRequest = (name, method = "GET", url = "", bodyType = "raw") => {
   const timestamp = Date.now()
   const randomSuffix = Math.floor(Math.random() * 1000)
   const uniqueName = name ? `${name} ${timestamp}` : `New Request ${timestamp}`
+  
+  const body = bodyType === "graphql" 
+    ? { mode: "graphql", graphql: { query: "", variables: "" } }
+    : { mode: "raw", raw: "" }
   
   return {
     name: uniqueName,
@@ -28,7 +32,7 @@ const createRequest = (name, method = "GET", url = "") => {
       method: method,
       header: [],
       url: { raw: url, host: [url] },
-      body: { mode: "raw", raw: "" }
+      body: body
     },
     event: [
       {
@@ -65,8 +69,14 @@ const generateStatusCodeTest = (testName, statusCode) => {
  * @returns {string} - Código JavaScript del test
  */
 const generateJsonPathTest = (testName, jsonPath, expectedValue) => {
-  // Escapar el valor esperado para que sea válido en JavaScript
-  const escapedValue = typeof expectedValue === 'string' ? `"${expectedValue}"` : expectedValue;
+  let escapedValue
+  if (expectedValue === 'null') {
+    escapedValue = null
+  } else if (typeof expectedValue === 'string') {
+    escapedValue = `"${expectedValue}"`
+  } else {
+    escapedValue = expectedValue
+  }
   
   return `pm.test("${testName}", function () {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.${jsonPath}).to.eql(${escapedValue});\n});`;
 };
@@ -221,10 +231,20 @@ const parseRequest = (item) => {
   // Parsear body
   let body = { mode: 'raw', raw: '' };
   if (request.body) {
-    body = {
-      mode: request.body.mode || 'raw',
-      raw: request.body.raw || ''
-    };
+    if (request.body.mode === 'graphql' && request.body.graphql) {
+      body = {
+        mode: 'graphql',
+        graphql: {
+          query: request.body.graphql.query || '',
+          variables: request.body.graphql.variables || ''
+        }
+      };
+    } else {
+      body = {
+        mode: request.body.mode || 'raw',
+        raw: request.body.raw || ''
+      };
+    }
   }
 
   // Parsear eventos (tests)

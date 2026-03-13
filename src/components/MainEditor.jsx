@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle, GitBranch, List, Activity, Eye } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle, GitBranch, List, Activity, Eye, Settings } from 'lucide-react'
 import { generateStatusCodeTest, generateJsonPathTest, generateArrayLengthTest } from '../lib/domain-logic'
 
 const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode }) => {
@@ -7,6 +7,11 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
   
   // Estado para el tipo de test seleccionado
   const [selectedTestType, setSelectedTestType] = useState('status')
+  
+  // Estado para tipo de body
+  const [bodyType, setBodyType] = useState('raw')
+  const [graphqlQuery, setGraphqlQuery] = useState('')
+  const [graphqlVariables, setGraphqlVariables] = useState('')
   
   // Campos comunes
   const [testName, setTestName] = useState('')
@@ -24,12 +29,21 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
     if (!useCase) return null
     const request = useCase.item.find(r => r.name === selectedRequestId)
     if (!request) return null
+    
+    const body = request.request.body
+    const isGraphql = body?.mode === 'graphql'
+    
+    const rawUrl = request.request.url?.raw || ''
+    
     return {
       name: request.name,
       method: request.request.method,
-      url: request.request.url?.raw || '',
+      url: rawUrl,
       headers: request.request.header || [],
-      body: request.request.body?.raw || '',
+      bodyType: isGraphql ? 'graphql' : 'raw',
+      rawBody: body?.raw || '',
+      graphqlQuery: isGraphql ? body?.graphql?.query || '' : '',
+      graphqlVariables: isGraphql ? body?.graphql?.variables || '' : '',
       tests: request.event?.[0]?.script?.exec || []
     }
   }, [selectedRequestId, selectedUseCaseId, collection])
@@ -52,6 +66,14 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
         return ''
     }
   }, [selectedTestType, testName, statusCode, jsonPath, expectedValue, arrayPath, arrayLength])
+
+  useEffect(() => {
+    if (requestData) {
+      setBodyType(requestData.bodyType)
+      setGraphqlQuery(requestData.graphqlQuery)
+      setGraphqlVariables(requestData.graphqlVariables)
+    }
+  }, [requestData?.name])
 
   const handleChange = (field, value) => {
     onUpdateRequest(selectedRequestId, { [field]: value })
@@ -101,11 +123,53 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
     })
   }
 
-  const handleBodyChange = (value) => {
+  const handleBodyTypeChange = (type) => {
+    setBodyType(type)
+    if (type === 'graphql') {
+      const isGet = requestData.method === 'GET'
+      onUpdateRequest(selectedRequestId, {
+        request: {
+          body: { mode: 'graphql', graphql: { query: graphqlQuery, variables: graphqlVariables } }
+        },
+        ...(isGet && { protocolProfileBehavior: { disableBodyPruning: true } })
+      })
+    } else {
+      onUpdateRequest(selectedRequestId, {
+        request: {
+          body: { mode: 'raw', raw: requestData.rawBody }
+        },
+        protocolProfileBehavior: {}
+      })
+    }
+  }
+
+  const handleRawBodyChange = (value) => {
     onUpdateRequest(selectedRequestId, {
       request: {
         body: { mode: 'raw', raw: value }
       }
+    })
+  }
+
+  const handleGraphqlQueryChange = (value) => {
+    setGraphqlQuery(value)
+    const isGet = requestData.method === 'GET'
+    onUpdateRequest(selectedRequestId, {
+      request: {
+        body: { mode: 'graphql', graphql: { query: value, variables: graphqlVariables } }
+      },
+      ...(isGet && { protocolProfileBehavior: { disableBodyPruning: true } })
+    })
+  }
+
+  const handleGraphqlVariablesChange = (value) => {
+    setGraphqlVariables(value)
+    const isGet = requestData.method === 'GET'
+    onUpdateRequest(selectedRequestId, {
+      request: {
+        body: { mode: 'graphql', graphql: { query: graphqlQuery, variables: value } }
+      },
+      ...(isGet && { protocolProfileBehavior: { disableBodyPruning: true } })
     })
   }
 
@@ -336,19 +400,87 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
           )}
 
           {activeTab === 'body' && (
-            <div className="relative">
-              <textarea
-                value={requestData.body}
-                onChange={(e) => handleBodyChange(e.target.value)}
-                placeholder="Enter request body (JSON, XML, etc.)"
-                className={`w-full h-80 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono resize-none ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
-              />
-              <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-amber-900/30 text-amber-400 border border-amber-700' : 'bg-amber-100 text-amber-700 border border-amber-200'}`}>
-                <div className="flex items-center gap-1.5">
-                  <FileJson className="w-3 h-3" />
-                  JSON / XML
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <label className={`text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Body Type:
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleBodyTypeChange('raw')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      bodyType === 'raw'
+                        ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                        : (darkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')
+                    }`}
+                  >
+                    Raw
+                  </button>
+                  <button
+                    onClick={() => handleBodyTypeChange('graphql')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      bodyType === 'graphql'
+                        ? (darkMode ? 'bg-pink-600 text-white' : 'bg-pink-500 text-white')
+                        : (darkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')
+                    }`}
+                  >
+                    GraphQL
+                  </button>
                 </div>
               </div>
+
+              {bodyType === 'raw' && (
+                <div className="relative">
+                  <textarea
+                    value={requestData.rawBody}
+                    onChange={(e) => handleRawBodyChange(e.target.value)}
+                    placeholder="Enter request body (JSON, XML, etc.)"
+                    className={`w-full h-80 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono resize-none ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                  />
+                  <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-amber-900/30 text-amber-400 border border-amber-700' : 'bg-amber-100 text-amber-700 border border-amber-200'}`}>
+                    <div className="flex items-center gap-1.5">
+                      <FileJson className="w-3 h-3" />
+                      JSON / XML
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {bodyType === 'graphql' && (
+                <div className="space-y-4">
+                  {requestData.method === 'GET' && (
+                    <div className={`flex items-center gap-3 p-3 rounded-xl border ${darkMode ? 'bg-amber-900/30 border-amber-700' : 'bg-amber-50 border-amber-200'}`}>
+                      <FileJson className={`w-5 h-5 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} />
+                      <span className={`text-sm ${darkMode ? 'text-amber-300' : 'text-amber-700'}`}>
+                        For GET requests, Postman will add <strong>disableBodyPruning</strong> automatically
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                      Query
+                    </label>
+                    <textarea
+                      value={requestData.graphqlQuery}
+                      onChange={(e) => handleGraphqlQueryChange(e.target.value)}
+                      placeholder="query { ... }"
+                      className={`w-full h-40 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono resize-none ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-pink-500 border'}`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                      Variables (JSON)
+                    </label>
+                    <textarea
+                      value={requestData.graphqlVariables}
+                      onChange={(e) => handleGraphqlVariablesChange(e.target.value)}
+                      placeholder='{ "variable": "value" }'
+                      className={`w-full h-32 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono resize-none ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-pink-500 border'}`}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -446,13 +578,26 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                       <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                         Valor Esperado
                       </label>
-                      <input
-                        type="text"
-                        value={expectedValue}
-                        onChange={(e) => setExpectedValue(e.target.value)}
-                        placeholder="Ej: John Doe, 123, true"
-                        className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={expectedValue}
+                          onChange={(e) => setExpectedValue(e.target.value)}
+                          placeholder="Ej: John Doe, 123, true"
+                          className={`flex-1 px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setExpectedValue('null')}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                            expectedValue === 'null'
+                              ? (darkMode ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white')
+                              : (darkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')
+                          }`}
+                        >
+                          null
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -520,31 +665,25 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                     </h3>
                   </div>
                   {requestData.tests.map((test, index) => {
-                    // Detectar el tipo de test
-                    let testType = 'code'
                     let typeColor = darkMode ? 'text-blue-400' : 'text-blue-500'
                     let typeLabel = 'Código'
                     let bgColor = darkMode ? 'bg-blue-900/30' : 'bg-blue-100'
                     
                     if (test.includes('.to.have.status(')) {
-                      testType = 'status'
                       typeColor = darkMode ? 'text-blue-400' : 'text-blue-600'
                       typeLabel = 'Status'
                       bgColor = darkMode ? 'bg-blue-900/30' : 'bg-blue-100'
                     } else if (test.includes('.length)')) {
-                      testType = 'array'
                       typeColor = darkMode ? 'text-orange-400' : 'text-orange-600'
                       typeLabel = 'Array'
                       bgColor = darkMode ? 'bg-orange-900/30' : 'bg-orange-100'
                     } else if (test.includes('.to.eql(')) {
-                      testType = 'json'
                       typeColor = darkMode ? 'text-purple-400' : 'text-purple-600'
                       typeLabel = 'JSON'
                       bgColor = darkMode ? 'bg-purple-900/30' : 'bg-purple-100'
                     }
                     
-                    // Extraer nombre del test
-                    const testNameMatch = test.match(/pm\.test\("([^"]+)"/,)
+                    const testNameMatch = test.match(/pm\.test\("([^"]+)"/)
                     const testName = testNameMatch ? testNameMatch[1] : `Test #${index + 1}`
                     
                     return (
