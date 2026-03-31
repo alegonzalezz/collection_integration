@@ -84,6 +84,80 @@ const exportCollection = (data) => {
   return URL.createObjectURL(blob);
 };
 
+const replaceUrlVariables = (text, urls, env) => {
+  if (!text || !urls || urls.length === 0) return text;
+  
+  let result = text;
+  urls.forEach(url => {
+    const placeholder = `{{${url.name}}}`;
+    const replacement = url[env] || '';
+    result = result.split(placeholder).join(replacement);
+  });
+  return result;
+};
+
+const exportCollectionWithEnv = (collection, env = 'local') => {
+  const urls = collection.info?.urls || [];
+  
+  const processedCollection = JSON.parse(JSON.stringify(collection));
+  
+  const variables = urls.map((url, index) => ({
+    id: `url-${index}`,
+    key: url.name,
+    value: url[env] || '',
+    type: 'string'
+  }));
+  
+  processedCollection.variable = [...(processedCollection.variable || []), ...variables];
+  
+  const processItems = (items) => {
+    if (!items || !Array.isArray(items)) return;
+    
+    items.forEach(item => {
+      if (item.request) {
+        if (item.request.url) {
+          if (typeof item.request.url === 'string') {
+            item.request.url = replaceUrlVariables(item.request.url, urls, env);
+          } else if (item.request.url.raw) {
+            item.request.url.raw = replaceUrlVariables(item.request.url.raw, urls, env);
+          }
+        }
+        
+        if (item.request.header) {
+          item.request.header = item.request.header.map(h => ({
+            ...h,
+            value: replaceUrlVariables(h.value, urls, env)
+          }));
+        }
+        
+        if (item.request.body) {
+          if (item.request.body.raw) {
+            item.request.body.raw = replaceUrlVariables(item.request.body.raw, urls, env);
+          }
+          if (item.request.body.graphql) {
+            if (item.request.body.graphql.query) {
+              item.request.body.graphql.query = replaceUrlVariables(item.request.body.graphql.query, urls, env);
+            }
+            if (item.request.body.graphql.variables) {
+              item.request.body.graphql.variables = replaceUrlVariables(item.request.body.graphql.variables, urls, env);
+            }
+          }
+        }
+      }
+      
+      if (item.item && Array.isArray(item.item)) {
+        processItems(item.item);
+      }
+    });
+  };
+  
+  if (processedCollection.item) {
+    processItems(processedCollection.item);
+  }
+  
+  return processedCollection;
+};
+
 /**
  * Genera el código JavaScript para un test de status code
  * @param {string} testName - Nombre del test
@@ -409,6 +483,7 @@ export {
   createUseCase, 
   createRequest, 
   exportCollection,
+  exportCollectionWithEnv,
   importCollection,
   generateStatusCodeTest,
   generateJsonPathTest,

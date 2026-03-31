@@ -3,7 +3,7 @@ import { Layers, Sun, Moon, Upload, FileJson } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import MainEditor from './components/MainEditor'
 import URLManager from './components/URLManager'
-import { emptyCollection, importCollection } from './lib/domain-logic'
+import { emptyCollection, importCollection, exportCollectionWithEnv } from './lib/domain-logic'
 
 function App() {
   const [collection, setCollection] = useState(emptyCollection)
@@ -11,6 +11,7 @@ function App() {
   const [selectedUseCaseId, setSelectedUseCaseId] = useState(null)
   const [darkMode, setDarkMode] = useState(false)
   const [importError, setImportError] = useState(null)
+  const [currentEnv, setCurrentEnv] = useState('local')
   const fileInputRef = useRef(null)
 
   const handleAddUseCase = (name) => {
@@ -93,14 +94,31 @@ function App() {
     })
   }
 
-  const handleExport = () => {
-    const blob = new Blob([JSON.stringify(collection, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${collection.info.name || 'collection'}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+  const handleExport = (env = null) => {
+    const environments = env ? [env] : ['local', 'dev', 'prod']
+    const urls = collection.info?.urls || []
+    
+    if (urls.length === 0) {
+      const blob = new Blob([JSON.stringify(collection, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${collection.info.name || 'collection'}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      return
+    }
+    
+    environments.forEach(envName => {
+      const processedCollection = exportCollectionWithEnv(collection, envName)
+      const blob = new Blob([JSON.stringify(processedCollection, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${collection.info.name || 'collection'}_${envName}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    })
   }
 
   const handleImportClick = () => {
@@ -182,7 +200,28 @@ function App() {
             collection={collection}
             onUpdateUrls={handleUpdateUrls}
             darkMode={darkMode}
+            currentEnv={currentEnv}
+            onEnvChange={setCurrentEnv}
           />
+          <div className={`flex items-center gap-1 px-1 py-1 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+            {['local', 'dev', 'prod'].map(env => (
+              <button
+                key={env}
+                onClick={() => setCurrentEnv(env)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  currentEnv === env
+                    ? env === 'local' 
+                      ? (darkMode ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white')
+                      : env === 'dev'
+                        ? (darkMode ? 'bg-amber-600 text-white' : 'bg-amber-500 text-white')
+                        : (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                    : (darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-800')
+                }`}
+              >
+                {env.toUpperCase()}
+              </button>
+            ))}
+          </div>
           {/* Botón de Importar */}
           <button
             onClick={handleImportClick}

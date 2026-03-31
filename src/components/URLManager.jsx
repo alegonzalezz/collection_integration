@@ -1,13 +1,25 @@
 import { useState } from 'react'
 import { Plus, X, Link, Globe, Server, Database } from 'lucide-react'
 
-const URLManager = ({ collection, onUpdateUrls, darkMode }) => {
+const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', onEnvChange }) => {
   const [isOpen, setIsOpen] = useState(false)
   const urls = collection.info?.urls || []
 
   const handleAddUrl = () => {
+    const urlNames = ['USERS', 'ITEMS', 'AUTH', 'PRODUCTS', 'ORDERS', 'CUSTOMERS']
+    let baseName = 'URL'
+    for (const name of urlNames) {
+      if (!urls.some(u => u.name === name + '_URL')) {
+        baseName = name + '_URL'
+        break
+      }
+    }
+    if (urls.length > 0 && baseName === 'URL') {
+      baseName = `URL_${urls.length + 1}`
+    }
+    
     const newUrl = {
-      name: `URL_${urls.length + 1}`,
+      name: baseName,
       local: 'http://localhost:3000',
       dev: 'https://dev-api.com',
       prod: 'https://api.com'
@@ -86,7 +98,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode }) => {
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${currentEnv === 'local' ? (darkMode ? 'bg-emerald-900/30' : 'bg-emerald-50') : ''}`}>
                         <Database className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
                         <span className={`text-xs font-medium w-12 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>LOCAL</span>
                         <input
@@ -97,7 +109,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode }) => {
                           placeholder="http://localhost:3000"
                         />
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${currentEnv === 'dev' ? (darkMode ? 'bg-amber-900/30' : 'bg-amber-50') : ''}`}>
                         <Server className={`w-4 h-4 ${darkMode ? 'text-amber-400' : 'text-amber-500'}`} />
                         <span className={`text-xs font-medium w-12 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>DEV</span>
                         <input
@@ -108,7 +120,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode }) => {
                           placeholder="https://dev-api.com"
                         />
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${currentEnv === 'prod' ? (darkMode ? 'bg-blue-900/30' : 'bg-blue-50') : ''}`}>
                         <Globe className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
                         <span className={`text-xs font-medium w-12 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>PROD</span>
                         <input
