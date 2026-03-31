@@ -1,273 +1,249 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { Book, Home, ChevronRight, Moon, Sun } from 'lucide-react'
 
 const DocumentationViewer = () => {
+  const [darkMode, setDarkMode] = useState(true)
+
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-300 bg-gradient-to-br from-slate-50 to-blue-50">
-      <header className="backdrop-blur-lg px-6 py-4 flex items-center justify-between shadow-lg transition-all duration-300 bg-white/90 border-b border-slate-200">
-        <div className="flex items-center gap-4">
-          <div className="p-2.5 rounded-xl shadow-lg transition-all duration-300 bg-gradient-to-br from-blue-500 to-indigo-600">
-            <Layers className="w-6 h-6 text-white" />
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
+      <header className={`backdrop-blur-lg border-b shadow-lg ${darkMode ? 'bg-slate-800/90 border-slate-700' : 'bg-white/90 border-slate-200'}`}>
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`p-2.5 rounded-xl shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600`}>
+              <Book className="w-6 h-6 text-white" />
+            </div>
+            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>Documentación</h1>
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-bold text-slate-800">Documentation</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-yellow-400 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <a
+              href="/collection_integration/"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            >
+              <Home className="w-4 h-4" />
+              <span>Volver al Editor</span>
+            </a>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => window.location.href = '/collection_integration/'}
-            className="p-2.5 rounded-xl transition-all duration-300 hover:scale-105 bg-slate-100 text-slate-600 hover:bg-slate-200"
-          >
-            <Sun className="w-5 h-5" />
-          </button>
         </div>
       </header>
 
-      <main className="flex-1 p-8 overflow-y-auto">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Content from Documentation/README.md would go here */}
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-            <h2 className="text-2xl font-bold mb-6 text-slate-800">Postman Collection Builder - Documentación</h2>
-            
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Introducción</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Aplicación React para crear y gestionar colecciones de Postman visualmente.
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className={`rounded-2xl shadow-lg border p-6 sticky top-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+              <h2 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Contenido</h2>
+              <nav className="space-y-2">
+                <a href="#introduccion" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                  <ChevronRight className="w-4 h-4" />
+                  Introducción
+                </a>
+                <a href="#funcionalidades" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                  <ChevronRight className="w-4 h-4" />
+                  Funcionalidades
+                </a>
+                <a href="#interfaz" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                  <ChevronRight className="w-4 h-4" />
+                  Interfaz
+                </a>
+                <a href="#urls" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                  <ChevronRight className="w-4 h-4" />
+                  Gestión de URLs
+                </a>
+                <a href="#requests" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                  <ChevronRight className="w-4 h-4" />
+                  Requests
+                </a>
+                <a href="#variables" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                  <ChevronRight className="w-4 h-4" />
+                  Variables
+                </a>
+                <a href="#import" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                  <ChevronRight className="w-4 h-4" />
+                  Import/Export
+                </a>
+              </nav>
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div className="lg:col-span-3 space-y-8">
+            <section id="introduccion" className={`rounded-2xl shadow-lg border p-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+              <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Introducción</h2>
+              <p className={`leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                Postman Collection Builder es una herramienta visual para crear y gestionar colecciones de Postman
+                de manera sencilla y rápida, sin necesidad de usar la interfaz nativa de Postman.
+              </p>
+              <div className={`mt-6 p-4 rounded-xl border ${darkMode ? 'bg-blue-900/30 border-blue-700' : 'bg-blue-50 border-blue-200'}`}>
+                <p className={`${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <strong>Ideal para:</strong> Equipos que trabajan con APIs y necesitan una forma estructurada
+                  de gestionar sus requests y entornos.
                 </p>
               </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Características Principales</h3>
-                <ul className="list-disc list-inside space-y-2 text-slate-600">
-                  <li>Crear y editar requests con método, URL, headers y body</li>
-                  <li>Gestionar variables globales extraídas de respuestas</li>
-                  <li>Definir URLs base para diferentes entornos (LOCAL, DEV, PROD)</li>
-                  <li>Importar/exportar colecciones y entornos</li>
-                  <li>Soporte para tests automáticos (status code, JSON path, array length)</li>
-                </ul>
+            </section>
+
+            <section id="funcionalidades" className={`rounded-2xl shadow-lg border p-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+              <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Funcionalidades Principales</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-emerald-900/30 border-emerald-700' : 'bg-emerald-50 border-emerald-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>Requests</h3>
+                  <p className={`text-sm ${darkMode ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                    Crear y editar requests con método, URL, headers y body.
+                  </p>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-amber-900/30 border-amber-700' : 'bg-amber-50 border-amber-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>URLs Base</h3>
+                  <p className={`text-sm ${darkMode ? 'text-amber-300' : 'text-amber-700'}`}>
+                    Gestionar URLs para LOCAL, DEV y PROD fácilmente.
+                  </p>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-blue-900/30 border-blue-700' : 'bg-blue-50 border-blue-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>Variables</h3>
+                  <p className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                    Extraer valores de respuestas JSON y reutilizarlos.
+                  </p>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-purple-400' : 'text-purple-800'}`}>Tests</h3>
+                  <p className={`text-sm ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>
+                    Tests automáticos: status code, JSON path, array length.
+                  </p>
+                </div>
               </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Estructura de la Interfaz</h3>
-                <div className="space-y-4">
+            </section>
+
+            <section id="interfaz" className={`rounded-2xl shadow-lg border p-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+              <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Interfaz</h2>
+              <div className="space-y-4">
+                <div className={`flex items-start gap-4 p-4 rounded-xl ${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold">
+                    Header
+                  </div>
                   <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Header</h4>
-                    <p className="text-slate-600">
-                      Contiene: nombre de la colección (editable), gestor de URLs, selector de entorno (LOCAL/DEV/PROD), 
-                      botones de Import/Export y toggle de dark mode.
+                    <h3 className={`font-semibold mb-1 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Header Superior</h3>
+                    <p className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      Nombre de colección, gestor de URLs, selector de entorno, botones de Import/Export y toggle de dark mode.
                     </p>
                   </div>
-                  
+                </div>
+                <div className={`flex items-start gap-4 p-4 rounded-xl ${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+                  <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold">
+                    Sidebar
+                  </div>
                   <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Sidebar (Izquierda)</h4>
-                    <p className="text-slate-600">
-                      Muestra la estructura de la colección: use cases (agrupadores) y requests dentro de cada use case.
-                      Permite agregar use cases, agregar requests y eliminar requests.
+                    <h3 className={`font-semibold mb-1 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Sidebar Izquierda</h3>
+                    <p className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      Use cases y requests. Permite agregar, eliminar y seleccionar.
                     </p>
                   </div>
-                  
+                </div>
+                <div className={`flex items-start gap-4 p-4 rounded-xl ${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+                  <div className="w-24 h-24 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold">
+                    Editor
+                  </div>
                   <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Editor (Derecha)</h4>
-                    <p className="text-slate-600">
-                      Se abre al seleccionar un request y contiene barra de método/URL, nombre editable y tabs para:
-                      Headers, Body, Tests y Variables.
+                    <h3 className={`font-semibold mb-1 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Editor (Derecha)</h3>
+                    <p className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      Configuración de requests: método, URL, headers, body, tests y variables.
                     </p>
                   </div>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Gestión de URLs</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Agregar una URL</h4>
-                    <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>Hacer clic en "URLs (X)" en el header</li>
-                      <li>Click en "Agregar URL"</li>
-                      <li>Ingresar nombre (se guarda en mayúsculas con guiones bajos)</li>
-                      <li>Completar valores para cada entorno: LOCAL, DEV y PROD</li>
-                    </ol>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Usar una URL en un Request</h4>
-                    <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>En el campo URL del editor, escribir <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">{'{{'}</code></li>
-                      <li>Aparece el autocomplete con las URLs disponibles</li>
-                      <li>Seleccionar la URL deseada</li>
-                      <li>Se insertará la variable como <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">{'{{NOMBRE_URL}}'}</code></li>
-                    </ol>
-                  </div>
-                  
-                  <div>
-                    <h5 className="text-sm font-medium mb-1 text-slate-800">Usar una Variable:</h5>
-                    <p className="text-slate-600">
-                      En cualquier campo (URL, headers, body), usar <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">{'{{nombreVariable}}'}</code>
-                    </p>
-                  </div>
+            </section>
+
+            <section id="urls" className={`rounded-2xl shadow-lg border p-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+              <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Gestión de URLs</h2>
+              <div className="space-y-4">
+                <div className={`p-4 rounded-xl border ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Agregar URL</h3>
+                  <ol className={`list-decimal list-inside space-y-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    <li>Click en <code className={`px-1.5 py-0.5 rounded font-mono text-xs ${darkMode ? 'bg-slate-700 text-cyan-300' : 'bg-slate-100'}`}>URLs (X)</code> en header</li>
+                    <li>Click en "Agregar URL"</li>
+                    <li>Completar nombre y valores LOCAL, DEV, PROD</li>
+                  </ol>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Usar URL en Request</h3>
+                  <p className={`${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    Escribe <code className={`px-1.5 py-0.5 rounded font-mono text-xs ${darkMode ? 'bg-slate-700 text-cyan-300' : 'bg-slate-100'}`}>{'{{'}</code> en el campo URL para activar el autocomplete.
+                  </p>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Gestión de Requests</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Crear un Request</h4>
-                    <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>Seleccionar un Use Case en la sidebar</li>
-                      <li>Click en "+" junto al nombre del Use Case</li>
-                      <li>Se crea un request con nombre por defecto</li>
-                      <li>El editor se abre automáticamente</li>
-                    </ol>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Editar un Request</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h5 className="text-sm font-medium mb-1 text-slate-800">Método:</h5>
-                        <p className="text-slate-600">Seleccionar de la lista (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS)</p>
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-medium mb-1 text-slate-800">URL:</h5>
-                        <p className="text-slate-600">Escribir la URL o usar variables {{variable}}</p>
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-medium mb-1 text-slate-800">Nombre:</h5>
-                        <p className="text-slate-600">Editable en el campo correspondiente</p>
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-medium mb-1 text-slate-800">Headers:</h5>
-                        <p className="text-slate-600">Agregar/editar/remover cabeceras</p>
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-medium mb-1 text-slate-800">Body:</h5>
-                        <p className="text-slate-600">Elegir tipo (Raw o GraphQL) y completar</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Tests</h4>
-                    <div className="space-y-3">
-                      <h5 className="text-sm font-medium mb-1 text-slate-800">Tipos de Tests Disponibles:</h5>
-                      <ul className="list-disc list-inside space-y-1 text-slate-600">
-                        <li><strong>Status Code:</strong> Valida que la respuesta tenga un código HTTP específico (ej: pm.response.to.have.status(200))</li>
-                        <li><strong>JSON Path:</strong> Valida un valor específico en el JSON de respuesta (ej: pm.expect(jsonData.name).to.eql('John'))</li>
-                        <li><strong>Array Length:</strong> Valida la cantidad de elementos en un array (ej: pm.expect(jsonData.users.length).to.eql(5))</li>
-                      </ul>
-                      
-                      <h5 className="text-sm font-medium mb-1 text-slate-800 mt-4">Agregar un Test:</h5>
-                      <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                        <li>Seleccionar el tipo de test</li>
-                        <li>Ingresar nombre del test</li>
-                        <li>Completar los campos específicos (status code, json path, etc.)</li>
-                        <li>Click en "Agregar Test"</li>
-                      </ol>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Variables</h4>
-                    <p className="text-slate-600 mb-2">
-                      Permite extraer valores del JSON de respuesta y guardarlos en variables globales.
-                    </p>
-                    
-                    <h5 className="text-sm font-medium mb-1 text-slate-800">Agregar Extracción:</h5>
-                    <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>En la tab "Variables", ingresar:
-                        <ul className="list-none pl-5 space-y-1">
-                          <li><strong>Nombre de Variable:</strong> Nombre para usar después (ej: userId)</li>
-                          <li><strong>JSON Path:</strong> Path del valor a extraer (ej: data.user.id)</li>
-                        </ul>
-                      </li>
-                      <li>Click en "Agregar Extracción"</li>
-                    </ol>
-                    
-                    <h5 className="text-sm font-medium mb-1 text-slate-800 mt-4">Usar una Variable:</h5>
-                    <p className="text-slate-600">
-                      En cualquier campo (URL, headers, body), usar {{nombreVariable}}
-                    </p>
-                  </div>
+            </section>
+
+            <section id="requests" className={`rounded-2xl shadow-lg border p-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+              <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Requests</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-emerald-900/30 border-emerald-700' : 'bg-emerald-50 border-emerald-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>GET</h3>
+                  <p className={`text-sm ${darkMode ? 'text-emerald-300' : 'text-emerald-700'}`}>Obtener datos</p>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-amber-900/30 border-amber-700' : 'bg-amber-50 border-amber-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>POST</h3>
+                  <p className={`text-sm ${darkMode ? 'text-amber-300' : 'text-amber-700'}`}>Crear datos</p>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-blue-900/30 border-blue-700' : 'bg-blue-50 border-blue-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>PUT</h3>
+                  <p className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>Actualizar datos</p>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-rose-900/30 border-rose-700' : 'bg-rose-50 border-rose-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-rose-400' : 'text-rose-800'}`}>DELETE</h3>
+                  <p className={`text-sm ${darkMode ? 'text-rose-300' : 'text-rose-700'}`}>Eliminar datos</p>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Importación y Exportación</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Importar Colección</h4>
-                    <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>Click en "Import" en el header</li>
-                      <li>Seleccionar archivo .json de Postman</li>
-                      <li>La colección se carga con todos los use cases y requests</li>
-                    </ol>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Importar Entornos/URLs</h4>
-                    <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>Click en "Import URLs" en el header</li>
-                      <li>Seleccionar uno o más archivos .environment.json</li>
-                      <li>Se mergean con las URLs existentes</li>
-                    </ol>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Exportar Colección</h4>
-                    <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>Click en "Export" en el header</li>
-                      <li>Se descarga nombre_coleccion.json</li>
-                    </ol>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Exportar URLs</h4>
-                    <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>Click en "Export URLs" en el header</li>
-                      <li>Se descargan 3 archivos:</li>
-                      <ul className="list-disc list-inside pl-5 space-y-1 text-slate-600">
-                        <li>nombre_coleccion_local.environment.json</li>
-                        <li>nombre_coleccion_dev.environment.json</li>
-                        <li>nombre_coleccion_prod.environment.json</li>
-                      </ul>
-                    </ol>
-                  </div>
+            </section>
+
+            <section id="variables" className={`rounded-2xl shadow-lg border p-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+              <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Variables</h2>
+              <div className="space-y-4">
+                <div className={`p-4 rounded-xl border ${darkMode ? 'bg-cyan-900/30 border-cyan-700' : 'bg-cyan-50 border-cyan-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-cyan-400' : 'text-cyan-800'}`}>Extraer Variable</h3>
+                  <p className={`text-sm ${darkMode ? 'text-cyan-300' : 'text-cyan-700'}`}>
+                    En tab "Variables", ingresa nombre y JSON path del valor a extraer del response.
+                  </p>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'border-slate-700 bg-slate-700/50' : 'border-slate-200 bg-slate-50'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Usar Variable</h3>
+                  <p className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    Usa <code className={`px-1.5 py-0.5 rounded font-mono text-xs ${darkMode ? 'bg-slate-700 text-cyan-300' : 'bg-slate-100'}`}>{'{{variable}}'}</code> en cualquier campo.
+                  </p>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Atajos de Teclado</h3>
-                <ul className="list-disc list-inside space-y-2 text-slate-600">
-                  <li><strong>Esc:</strong> Cerrar popups/modales (autocomplete, URL manager)</li>
-                  <li><strong>Ctrl/Cmd + S:</strong> (Próximamente) Guardar cambios</li>
-                </ul>
+            </section>
+
+            <section id="import" className={`rounded-2xl shadow-lg border p-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+              <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Import/Export</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`p-4 rounded-xl border ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Importar</h3>
+                  <ul className={`text-sm space-y-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    <li>• <strong>Colección:</strong> Archivo JSON de Postman</li>
+                    <li>• <strong>URLs:</strong> Archivos environment.json</li>
+                  </ul>
+                </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Exportar</h3>
+                  <ul className={`text-sm space-y-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    <li>• <strong>Colección:</strong> JSON para Postman</li>
+                    <li>• <strong>URLs:</strong> 3 archivos (local, dev, prod)</li>
+                  </ul>
+                </div>
               </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Tecnologías Usadas</h3>
-                <ul className="list-disc list-inside space-y-2 text-slate-600">
-                  <li>React 18+ con Hooks</li>
-                  <li>Tailwind CSS para estilos</li>
-                  <li>Lucide React para iconos</li>
-                  <li>Vite como bundler</li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-slate-800">Tips y Trucos</h3>
-                <ul className="list-disc list-inside space-y-2 text-slate-600">
-                  <li><strong>Usar variables en URLs:</strong> Define URLs base y úsalas en todos los requests para cambiar fácilmente entre entornos.</li>
-                  <li><strong>Tests encadenados:</strong> Extrae variables en un request y úsalas en el siguiente para crear flujos.</li>
-                  <li><strong>Dark mode:</strong> Úsalo para sesiones largas de trabajo.</li>
-                  <li><strong>Autocomplete:</strong> Escribe <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">{'{{'}</code> en cualquier campo para ver variables y URLs disponibles.</li>
-                  <li><strong>Collapse editor:</strong> Usa la flecha izquierda en el header del editor para volver rápidamente a la sidebar.</li>
-                </ul>
-              </div>
-            </div>
+            </section>
           </div>
         </div>
       </main>
+
+      <footer className={`border-t mt-12 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+        <div className={`max-w-6xl mx-auto px-6 py-4 text-center text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          Postman Collection Builder - Documentación
+        </div>
+      </footer>
     </div>
   )
 }

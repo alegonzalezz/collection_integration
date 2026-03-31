@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Layers, Sun, Moon, Upload, Download, FileJson } from 'lucide-react'
+import { Layers, Sun, Moon, Upload, Download, FileJson, Book } from 'lucide-react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import MainEditor from './components/MainEditor'
@@ -11,7 +11,7 @@ function App() {
   const [collection, setCollection] = useState(emptyCollection)
   const [selectedRequestId, setSelectedRequestId] = useState(null)
   const [selectedUseCaseId, setSelectedUseCaseId] = useState(null)
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode, setDarkMode] = useState(true)
   const [importError, setImportError] = useState(null)
   const [currentEnv, setCurrentEnv] = useState('local')
   const [showUrlManager, setShowUrlManager] = useState(false)
@@ -340,163 +340,176 @@ function App() {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
-      <header className={`backdrop-blur-lg px-6 py-4 flex items-center justify-between shadow-lg transition-all duration-300 ${darkMode ? 'bg-slate-800/90 border-b border-slate-700' : 'bg-white/90 border-b border-slate-200'}`}>
-        <div className="flex items-center gap-4">
-          <div className={`p-2.5 rounded-xl shadow-lg transition-all duration-300 ${darkMode ? 'bg-gradient-to-br from-blue-600 to-purple-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
-            <Layers className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <input
-              type="text"
-              value={collection.info.name}
-              onChange={(e) => setCollection(prev => ({
-                ...prev,
-                info: { ...prev.info, name: e.target.value }
-              }))}
-              className={`text-xl font-bold tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 ${darkMode ? 'text-white' : 'text-slate-800'}`}
-              placeholder="Collection name"
-            />
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <URLManager
-            collection={collection}
-            onUpdateUrls={handleUpdateUrls}
-            darkMode={darkMode}
-            currentEnv={currentEnv}
-            onEnvChange={setCurrentEnv}
-            isOpen={showUrlManager}
-            onClose={() => setShowUrlManager(false)}
-            triggerEditUrl={() => setShowUrlManager(true)}
-          />
-          <div className={`flex items-center gap-1 px-1 py-1 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-            {['local', 'dev', 'prod'].map(env => (
+    <Routes>
+      <Route path="/collection_integration/documentation" element={
+        <DocumentationViewer />
+      } />
+      <Route path="/collection_integration/" element={
+        <div className={`min-h-screen flex flex-col transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
+          <header className={`backdrop-blur-lg px-6 py-4 flex items-center justify-between shadow-lg transition-all duration-300 ${darkMode ? 'bg-slate-800/90 border-b border-slate-700' : 'bg-white/90 border-b border-slate-200'}`}>
+            <div className="flex items-center gap-4">
+              <div className={`p-2.5 rounded-xl shadow-lg transition-all duration-300 ${darkMode ? 'bg-gradient-to-br from-blue-600 to-purple-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
+                <Layers className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <input
+                  type="text"
+                  value={collection.info.name}
+                  onChange={(e) => setCollection(prev => ({
+                    ...prev,
+                    info: { ...prev.info, name: e.target.value }
+                  }))}
+                  className={`text-xl font-bold tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 ${darkMode ? 'text-white' : 'text-slate-800'}`}
+                  placeholder="Collection name"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <URLManager
+                collection={collection}
+                onUpdateUrls={handleUpdateUrls}
+                darkMode={darkMode}
+                currentEnv={currentEnv}
+                onEnvChange={setCurrentEnv}
+                isOpen={showUrlManager}
+                onClose={() => setShowUrlManager(false)}
+                triggerEditUrl={() => setShowUrlManager(true)}
+              />
+              <div className={`flex items-center gap-1 px-1 py-1 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                {['local', 'dev', 'prod'].map(env => (
+                  <button
+                    key={env}
+                    onClick={() => setCurrentEnv(env)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                      currentEnv === env
+                        ? env === 'local' 
+                          ? (darkMode ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white')
+                          : env === 'dev'
+                            ? (darkMode ? 'bg-amber-600 text-white' : 'bg-amber-500 text-white')
+                            : (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-800')
+                    }`}
+                  >
+                    {env.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Import Collection */}
               <button
-                key={env}
-                onClick={() => setCurrentEnv(env)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  currentEnv === env
-                    ? env === 'local' 
-                      ? (darkMode ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white')
-                      : env === 'dev'
-                        ? (darkMode ? 'bg-amber-600 text-white' : 'bg-amber-500 text-white')
-                        : (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
-                    : (darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-800')
-                }`}
+                onClick={handleImportClick}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
+                title="Import Collection"
               >
-                {env.toUpperCase()}
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Import</span>
               </button>
-            ))}
-          </div>
-          
-          {/* Import Collection */}
-          <button
-            onClick={handleImportClick}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
-            title="Import Collection"
-          >
-            <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Import</span>
-          </button>
-          <input
-            ref={collectionInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          
-          {/* Export Collection */}
-          <button
-            onClick={() => handleExport('collection')}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            title="Export Collection"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-          
-          {/* Import URLs - multiple files allowed */}
-          <button
-            onClick={() => urlsInputRef.current?.click()}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
-            title="Import URLs - select multiple files"
-          >
-            <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Import URLs</span>
-          </button>
-          <input
-            ref={urlsInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleImportUrls}
-            className="hidden"
-            multiple
-          />
-          
-          {/* Export URLs */}
-          <button
-            onClick={handleExportUrls}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            title="Export URLs"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export URLs</span>
-          </button>
-          
-          {/* Botón de Dark Mode */}
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-yellow-400 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-          >
-            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-        </div>
-      </header>
+              <input
+                ref={collectionInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              
+              {/* Export Collection */}
+              <button
+                onClick={() => handleExport('collection')}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                title="Export Collection"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Export</span>
+              </button>
+              
+              {/* Import URLs - multiple files allowed */}
+              <button
+                onClick={() => urlsInputRef.current?.click()}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
+                title="Import URLs - select multiple files"
+              >
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Import URLs</span>
+              </button>
+              <input
+                ref={urlsInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleImportUrls}
+                className="hidden"
+                multiple
+              />
+              
+              {/* Export URLs */}
+              <button
+                onClick={handleExportUrls}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                title="Export URLs"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Export URLs</span>
+              </button>
+              
+              {/* Documentación */}
+              <a
+                href="/collection_integration/documentation"
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-purple-600 text-white hover:bg-purple-500' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
+                title="Documentación"
+              >
+                <Book className="w-4 h-4" />
+                <span className="hidden sm:inline">Docs</span>
+              </a>
+              
+              {/* Botón de Dark Mode */}
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-yellow-400 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
+          </header>
 
-      {/* Mensaje de error de importación */}
-      {importError && (
-        <div className={`px-6 py-3 ${darkMode ? 'bg-rose-900/30 border-rose-700' : 'bg-rose-100 border-rose-300'} border-b`}>
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${darkMode ? 'bg-rose-400' : 'bg-rose-500'}`} />
-            <p className={`text-sm ${darkMode ? 'text-rose-300' : 'text-rose-700'}`}>{importError}</p>
-          </div>
-        </div>
-      )}
+          {/* Mensaje de error de importación */}
+          {importError && (
+            <div className={`px-6 py-3 ${darkMode ? 'bg-rose-900/30 border-rose-700' : 'bg-rose-100 border-rose-300'} border-b`}>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${darkMode ? 'bg-rose-400' : 'bg-rose-500'}`} />
+                <p className={`text-sm ${darkMode ? 'text-rose-300' : 'text-rose-700'}`}>{importError}</p>
+              </div>
+            </div>
+          )}
 
-      {/* Info de la collection importada */}
-      {collection.info.name && collection.info.name !== 'Nueva Coleccion' && collection.info.name !== 'Nueva Coleccion' && collection.info.name.length > 0 && (
-        <div className={`px-6 py-2 ${darkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'} border-b`}>
-          <div className="flex items-center gap-2">
-            <FileJson className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-            <p className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-              {collection.item.length > 0 && (
-                <span>
-                  {collection.item.length} use cases, {collection.item.reduce((acc, uc) => acc + uc.item.length, 0)} requests
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-      )}
+          {/* Info de la collection importada */}
+          {collection.info.name && collection.info.name !== 'Nueva Coleccion' && collection.info.name !== 'Nueva Coleccion' && collection.info.name.length > 0 && (
+            <div className={`px-6 py-2 ${darkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'} border-b`}>
+              <div className="flex items-center gap-2">
+                <FileJson className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                <p className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                  {collection.item.length > 0 && (
+                    <span>
+                      {collection.item.length} use cases, {collection.item.reduce((acc, uc) => acc + uc.item.length, 0)} requests
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          collection={collection}
-          selectedRequestId={selectedRequestId}
-          selectedUseCaseId={selectedUseCaseId}
-          onSelectRequest={setSelectedRequestId}
-          onSelectUseCase={setSelectedUseCaseId}
-          onAddUseCase={handleAddUseCase}
-          onAddRequest={handleAddRequest}
-          onDeleteRequest={handleDeleteRequest}
-          darkMode={darkMode}
-        />
-        <main className="flex-1 overflow-hidden">
-          <Routes>
-            <Route path="/collection_integration/" element={
-              selectedRequestId ? (
+          <div className="flex flex-1 overflow-hidden">
+            <Sidebar
+              collection={collection}
+              selectedRequestId={selectedRequestId}
+              selectedUseCaseId={selectedUseCaseId}
+              onSelectRequest={setSelectedRequestId}
+              onSelectUseCase={setSelectedUseCaseId}
+              onAddUseCase={handleAddUseCase}
+              onAddRequest={handleAddRequest}
+              onDeleteRequest={handleDeleteRequest}
+              darkMode={darkMode}
+            />
+            <main className="flex-1 overflow-hidden">
+              {selectedRequestId ? (
                 <MainEditor
                   collection={collection}
                   selectedRequestId={selectedRequestId}
@@ -520,15 +533,12 @@ function App() {
                     <p className="text-slate-500">Choose a request from the sidebar to start editing</p>
                   </div>
                 </div>
-              )
-            } />
-            <Route path="/collection_integration/documentation" element={
-              <DocumentationViewer />
-            } />
-          </Routes>
-        </main>
-      </div>
-    </div>
+              )}
+            </main>
+          </div>
+        </div>
+      } />
+    </Routes>
   )
 }
 
