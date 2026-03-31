@@ -5,8 +5,8 @@ const DocumentationViewer = () => {
   const [darkMode, setDarkMode] = useState(true)
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
-      <header className={`backdrop-blur-lg border-b shadow-lg ${darkMode ? 'bg-slate-800/90 border-slate-700' : 'bg-white/90 border-slate-200'}`}>
+    <div className={`h-screen flex flex-col transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b shadow-lg ${darkMode ? 'bg-slate-800/90 border-slate-700' : 'bg-white/90 border-slate-200'}`}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className={`p-2.5 rounded-xl shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600`}>
@@ -32,47 +32,47 @@ const DocumentationViewer = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className={`rounded-2xl shadow-lg border p-6 sticky top-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-              <h2 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Contenido</h2>
-              <nav className="space-y-2">
-                <a href="#introduccion" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
-                  <ChevronRight className="w-4 h-4" />
-                  Introducción
-                </a>
-                <a href="#funcionalidades" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
-                  <ChevronRight className="w-4 h-4" />
-                  Funcionalidades
-                </a>
-                <a href="#interfaz" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
-                  <ChevronRight className="w-4 h-4" />
-                  Interfaz
-                </a>
-                <a href="#urls" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
-                  <ChevronRight className="w-4 h-4" />
-                  Gestión de URLs
-                </a>
-                <a href="#requests" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
-                  <ChevronRight className="w-4 h-4" />
-                  Requests
-                </a>
-                <a href="#variables" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
-                  <ChevronRight className="w-4 h-4" />
-                  Variables
-                </a>
-                <a href="#import" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
-                  <ChevronRight className="w-4 h-4" />
-                  Import/Export
-                </a>
-              </nav>
-            </div>
+      <div className="flex flex-1 pt-[72px] overflow-hidden">
+        {/* Sidebar */}
+        <div className={`w-64 flex-shrink-0 border-r overflow-y-auto ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+          <div className="p-6">
+            <h2 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Contenido</h2>
+            <nav className="space-y-2">
+              <a href="#introduccion" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                <ChevronRight className="w-4 h-4" />
+                Introducción
+              </a>
+              <a href="#funcionalidades" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                <ChevronRight className="w-4 h-4" />
+                Funcionalidades
+              </a>
+              <a href="#interfaz" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                <ChevronRight className="w-4 h-4" />
+                Interfaz
+              </a>
+              <a href="#urls" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                <ChevronRight className="w-4 h-4" />
+                Gestión de URLs
+              </a>
+              <a href="#requests" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                <ChevronRight className="w-4 h-4" />
+                Requests
+              </a>
+              <a href="#variables" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                <ChevronRight className="w-4 h-4" />
+                Variables
+              </a>
+              <a href="#import" className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}>
+                <ChevronRight className="w-4 h-4" />
+                Import/Export
+              </a>
+            </nav>
           </div>
+        </div>
 
-          {/* Main content */}
-          <div className="lg:col-span-3 space-y-8">
+        {/* Main content */}
+        <div className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-4xl mx-auto space-y-8">
             <section id="introduccion" className={`rounded-2xl shadow-lg border p-8 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
               <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Introducción</h2>
               <p className={`leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -167,6 +167,26 @@ const DocumentationViewer = () => {
                     <li>Completar nombre y valores LOCAL, DEV, PROD</li>
                   </ol>
                 </div>
+                <div className={`p-4 rounded-xl border ${darkMode ? 'border-slate-700 bg-slate-700/50' : 'border-slate-200 bg-slate-50'}`}>
+                  <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Ejemplo: GOOGLE_URL</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className={`p-3 rounded-lg border ${darkMode ? 'bg-emerald-900/30 border-emerald-700' : 'bg-emerald-50 border-emerald-200'}`}>
+                      <span className={`text-xs font-bold ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>LOCAL</span>
+                      <p className={`text-sm mt-1 font-mono ${darkMode ? 'text-emerald-300' : 'text-emerald-700'}`}>http://localhost:8080</p>
+                    </div>
+                    <div className={`p-3 rounded-lg border ${darkMode ? 'bg-amber-900/30 border-amber-700' : 'bg-amber-50 border-amber-200'}`}>
+                      <span className={`text-xs font-bold ${darkMode ? 'text-amber-400' : 'text-amber-600'}`}>DEV</span>
+                      <p className={`text-sm mt-1 font-mono ${darkMode ? 'text-amber-300' : 'text-amber-700'}`}>http://dev.google.com</p>
+                    </div>
+                    <div className={`p-3 rounded-lg border ${darkMode ? 'bg-blue-900/30 border-blue-700' : 'bg-blue-50 border-blue-200'}`}>
+                      <span className={`text-xs font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>PROD</span>
+                      <p className={`text-sm mt-1 font-mono ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>http://google.com</p>
+                    </div>
+                  </div>
+                  <p className={`text-xs mt-3 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Usar en request: <code className={`px-1.5 py-0.5 rounded font-mono ${darkMode ? 'bg-slate-700 text-cyan-300' : 'bg-slate-100'}`}>{'{{GOOGLE_URL}}'}</code>
+                  </p>
+                </div>
                 <div className={`p-4 rounded-xl border ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
                   <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Usar URL en Request</h3>
                   <p className={`${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -237,13 +257,7 @@ const DocumentationViewer = () => {
             </section>
           </div>
         </div>
-      </main>
-
-      <footer className={`border-t mt-12 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-        <div className={`max-w-6xl mx-auto px-6 py-4 text-center text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-          Postman Collection Builder - Documentación
-        </div>
-      </footer>
+      </div>
     </div>
   )
 }

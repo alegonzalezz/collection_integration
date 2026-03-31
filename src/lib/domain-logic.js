@@ -7,14 +7,7 @@ const emptyCollection = {
   info: {
     name: "Nueva Coleccion",
     schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    urls: [
-      {
-        name: "GOOGLE_URL",
-        local: "https://www.google.com.ar",
-        dev: "https://www.google.com",
-        prod: "https://www.google.com.uy"
-      }
-    ]
+    urls: []
   },
   item: []
 };
