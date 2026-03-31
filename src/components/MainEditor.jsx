@@ -358,7 +358,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
     { id: 'variables', label: 'Variables', icon: Variable }
   ]
 
-  if (!requestData) {
+if (!requestData) {
     return (
       <div className={`flex-1 p-8 flex flex-col items-center justify-center h-full transition-all duration-300 ${darkMode ? 'bg-slate-900/50' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
         <div className="text-center max-w-md">

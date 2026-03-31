@@ -140,17 +140,23 @@ function App() {
       return
     }
     
-    const urlsData = {
-      urls: urls
+    const downloadFile = (content, filename) => {
+      const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
     }
     
-    const blob = new Blob([JSON.stringify(urlsData, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${collection.info.name || 'collection'}_urls.json`
-    a.click()
-    URL.revokeObjectURL(url)
+    const urlsData = { urls: urls }
+    downloadFile(urlsData, `${collection.info.name || 'collection'}_urls.json`)
+    
+    ['local', 'dev', 'prod'].forEach(envName => {
+      const environment = exportEnvironment(collection, envName)
+      downloadFile(environment, `${collection.info.name || 'collection'}_${envName}.environment.json`)
+    })
   }
 
   const handleImportUrls = (event) => {
