@@ -101,8 +101,9 @@ const exportCollectionWithEnv = (collection, env = 'local') => {
   
   const processedCollection = JSON.parse(JSON.stringify(collection));
   
-  const variables = urls.map((url, index) => ({
-    id: `url-${index}`,
+  delete processedCollection.info.urls;
+  
+  const variables = urls.map(url => ({
     key: url.name,
     value: url[env] || '',
     type: 'string'
@@ -118,8 +119,11 @@ const exportCollectionWithEnv = (collection, env = 'local') => {
         if (item.request.url) {
           if (typeof item.request.url === 'string') {
             item.request.url = replaceUrlVariables(item.request.url, urls, env);
-          } else if (item.request.url.raw) {
-            item.request.url.raw = replaceUrlVariables(item.request.url.raw, urls, env);
+          } else if (item.request.url.raw !== undefined) {
+            item.request.url.raw = replaceUrlVariables(item.request.url.raw || '', urls, env);
+          }
+          if (item.request.url.host && Array.isArray(item.request.url.host)) {
+            item.request.url.host = item.request.url.host.map(h => replaceUrlVariables(h, urls, env));
           }
         }
         
