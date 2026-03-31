@@ -150,9 +150,6 @@ function App() {
       URL.revokeObjectURL(url)
     }
     
-    const urlsData = { urls: urls }
-    downloadFile(urlsData, `${collection.info.name || 'collection'}_urls.json`)
-    
     ['local', 'dev', 'prod'].forEach(envName => {
       const environment = exportEnvironment(collection, envName)
       downloadFile(environment, `${collection.info.name || 'collection'}_${envName}.environment.json`)
