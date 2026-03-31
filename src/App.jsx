@@ -3,7 +3,7 @@ import { Layers, Sun, Moon, Upload, FileJson } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import MainEditor from './components/MainEditor'
 import URLManager from './components/URLManager'
-import { emptyCollection, importCollection, exportCollectionWithEnv, exportCollectionWithVariables, exportEnvironment } from './lib/domain-logic'
+import { emptyCollection, importCollection, isEnvironmentFile, exportCollectionWithEnv, exportCollectionWithVariables, exportEnvironment } from './lib/domain-logic'
 
 function App() {
   const [collection, setCollection] = useState(emptyCollection)
@@ -12,7 +12,8 @@ function App() {
   const [darkMode, setDarkMode] = useState(false)
   const [importError, setImportError] = useState(null)
   const [currentEnv, setCurrentEnv] = useState('local')
-  const fileInputRef = useRef(null)
+  const collectionInputRef = useRef(null)
+  const environmentInputRef = useRef(null)
 
   const handleAddUseCase = (name) => {
     setCollection(prev => ({
@@ -123,7 +124,11 @@ function App() {
   }
 
   const handleImportClick = () => {
-    fileInputRef.current?.click()
+    collectionInputRef.current?.click()
+  }
+
+  const handleImportEnvClick = () => {
+    environmentInputRef.current?.click()
   }
 
   const getUseCaseVariables = (collection, useCaseId) => {
@@ -158,6 +163,13 @@ function App() {
     reader.onload = (e) => {
       try {
         const jsonData = JSON.parse(e.target.result)
+        
+        if (isEnvironmentFile(jsonData)) {
+          setImportError(`Detectado archivo de environment: ${jsonData.name}. Por favor importá primero la colección y luego el environment.`)
+          event.target.value = ''
+          return
+        }
+        
         const importedCollection = importCollection(jsonData)
         
         setCollection(importedCollection)
@@ -169,6 +181,54 @@ function App() {
       } catch (error) {
         console.error('Error importing collection:', error)
         setImportError('Error al importar la collection. Verifica que sea un archivo válido de Postman.')
+      }
+    }
+    reader.onerror = () => {
+      setImportError('Error al leer el archivo')
+    }
+    reader.readAsText(file)
+  }
+
+  const handleImportEnvironment = (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.json')) {
+      setImportError('Por favor selecciona un archivo JSON')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const envData = JSON.parse(e.target.result)
+        
+        if (!isEnvironmentFile(envData)) {
+          setImportError('El archivo no parece ser un environment válido de Postman')
+          event.target.value = ''
+          return
+        }
+        
+        const currentUrls = collection.info?.urls || []
+        const updatedUrls = currentUrls.map(url => {
+          const envVar = envData.values.find(v => v.key === url.name)
+          if (envVar && envVar.enabled) {
+            const envName = envData.name
+            return { ...url, [envName]: envVar.value }
+          }
+          return url
+        })
+        
+        setCollection(prev => ({
+          ...prev,
+          info: { ...prev.info, urls: updatedUrls }
+        }))
+        
+        setImportError(null)
+        event.target.value = ''
+      } catch (error) {
+        console.error('Error importing environment:', error)
+        setImportError('Error al importar el environment.')
       }
     }
     reader.onerror = () => {
@@ -230,13 +290,29 @@ function App() {
             title="Importar Collection"
           >
             <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Importar</span>
+            <span className="hidden sm:inline">Collection</span>
           </button>
           <input
-            ref={fileInputRef}
+            ref={collectionInputRef}
             type="file"
             accept=".json"
             onChange={handleFileChange}
+            className="hidden"
+          />
+          
+          <button
+            onClick={handleImportEnvClick}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            title="Importar Environment"
+          >
+            <Upload className="w-4 h-4" />
+            <span className="hidden sm:inline">Env</span>
+          </button>
+          <input
+            ref={environmentInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleImportEnvironment}
             className="hidden"
           />
           

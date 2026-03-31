@@ -311,7 +311,7 @@ const removeTestFromRequest = (request, testIndex) => {
  * @param {Object} jsonData - El objeto JSON parseado de la collection
  * @returns {Object} - Collection estructurada para la aplicación
  */
-const importCollection = (jsonData) => {
+const importCollection = (jsonData, environmentData = null) => {
   // Validar estructura básica
   if (!jsonData || typeof jsonData !== 'object') {
     throw new Error('Invalid JSON format');
@@ -321,10 +321,65 @@ const importCollection = (jsonData) => {
   const collection = {
     info: {
       name: jsonData.info?.name || 'Imported Collection',
-      schema: jsonData.info?.schema || 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
+      schema: jsonData.info?.schema || 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
+      urls: []
     },
     item: []
   };
+
+  // Importar URLs desde las variables de la colección
+  if (jsonData.variable && Array.isArray(jsonData.variable)) {
+    jsonData.variable.forEach(v => {
+      if (v.key && (v.key.endsWith('_URL') || v.key.endsWith('_API'))) {
+        const urlName = v.key;
+        const urlValue = v.value || '';
+        
+        let local = '';
+        let dev = '';
+        let prod = '';
+        
+        if (environmentData && environmentData.values) {
+          const envVar = environmentData.values.find(ev => ev.key === urlName);
+          if (envVar && envVar.value) {
+            const envName = environmentData.name || 'local';
+            if (envName === 'local') local = envVar.value;
+            else if (envName === 'dev') dev = envVar.value;
+            else if (envName === 'prod') prod = envVar.value;
+          }
+        }
+        
+        if (!local && urlValue.includes('localhost')) local = urlValue;
+        else if (!local) local = urlValue;
+        
+        if (!dev && urlValue.includes('dev')) dev = urlValue;
+        else if (!dev) dev = urlValue.replace('localhost', 'dev-api');
+        
+        if (!prod && urlValue.includes('api')) prod = urlValue;
+        else if (!prod) prod = urlValue.replace('localhost', 'api');
+        
+        collection.info.urls.push({
+          name: urlName,
+          local: local || 'http://localhost:3000',
+          dev: dev || 'https://dev-api.com',
+          prod: prod || 'https://api.com'
+        });
+      }
+    });
+  }
+
+  // Si no hay URLs pero hay environment, crear desde environment
+  if (collection.info.urls.length === 0 && environmentData && environmentData.values) {
+    environmentData.values.forEach(v => {
+      if (v.key && (v.key.endsWith('_URL') || v.key.endsWith('_API'))) {
+        collection.info.urls.push({
+          name: v.key,
+          local: v.value || 'http://localhost:3000',
+          dev: v.value || 'https://dev-api.com',
+          prod: v.value || 'https://api.com'
+        });
+      }
+    });
+  }
 
   // Procesar items (casos de uso o requests directos)
   if (Array.isArray(jsonData.item)) {
@@ -365,6 +420,14 @@ const importCollection = (jsonData) => {
   }
 
   return collection;
+};
+
+const isEnvironmentFile = (jsonData) => {
+  return jsonData && 
+         jsonData.name && 
+         jsonData.values && 
+         Array.isArray(jsonData.values) &&
+         jsonData.values.every(v => v.key && v.value !== undefined);
 };
 
 /**
@@ -540,6 +603,7 @@ export {
   exportCollectionWithVariables,
   exportEnvironment,
   importCollection,
+  isEnvironmentFile,
   generateStatusCodeTest,
   generateJsonPathTest,
   generateArrayLengthTest,
