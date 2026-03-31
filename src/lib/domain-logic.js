@@ -6,9 +6,42 @@
 const emptyCollection = {
   info: {
     name: "Nueva Coleccion",
-    schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    urls: []
   },
   item: []
+};
+
+const createUrlEntry = (name = "NEW_URL") => ({
+  name,
+  local: "http://localhost:3000",
+  dev: "https://dev-api.com",
+  prod: "https://api.com"
+});
+
+const addUrlEntry = (collection, urlEntry) => ({
+  ...collection,
+  info: {
+    ...collection.info,
+    urls: [...(collection.info.urls || []), urlEntry]
+  }
+});
+
+const updateUrlEntry = (collection, urlIndex, updates) => {
+  const urls = [...(collection.info.urls || [])]
+  urls[urlIndex] = { ...urls[urlIndex], ...updates }
+  return {
+    ...collection,
+    info: { ...collection.info, urls }
+  }
+};
+
+const removeUrlEntry = (collection, urlIndex) => {
+  const urls = (collection.info.urls || []).filter((_, i) => i !== urlIndex)
+  return {
+    ...collection,
+    info: { ...collection.info, urls }
+  }
 };
 
 const createUseCase = (name) => ({
@@ -385,5 +418,9 @@ export {
   generateVariableExtraction,
   addVariableExtraction,
   removeVariableExtraction,
-  getVariableExtractions
+  getVariableExtractions,
+  createUrlEntry,
+  addUrlEntry,
+  updateUrlEntry,
+  removeUrlEntry
 };

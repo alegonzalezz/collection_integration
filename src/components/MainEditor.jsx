@@ -4,7 +4,7 @@ import { generateStatusCodeTest, generateJsonPathTest, generateArrayLengthTest, 
 
 import VariableAutocomplete from './VariableAutocomplete'
 
-const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode, useCaseVariables }) => {
+const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode, useCaseVariables, urls }) => {
   const [activeTab, setActiveTab] = useState('headers')
   
   // Estado para el tipo de test seleccionado
@@ -387,6 +387,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
               value={requestData.url}
               onChange={handleUrlChange}
               variables={useCaseVariables}
+              urls={urls}
               darkMode={darkMode}
               placeholder="https://api.example.com/endpoint"
             />
@@ -439,6 +440,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                       value={header.key}
                       onChange={(value) => handleHeaderChange(index, 'key', value)}
                       variables={useCaseVariables}
+                      urls={urls}
                       darkMode={darkMode}
                       placeholder="Key"
                     />
@@ -448,6 +450,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                       value={header.value}
                       onChange={(value) => handleHeaderChange(index, 'value', value)}
                       variables={useCaseVariables}
+                      urls={urls}
                       darkMode={darkMode}
                       placeholder="Value"
                     />
@@ -506,6 +509,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                     value={requestData.rawBody}
                     onChange={handleRawBodyChange}
                     variables={useCaseVariables}
+                    urls={urls}
                     darkMode={darkMode}
                     placeholder="Enter request body (JSON, XML, etc.)"
                     isTextarea
@@ -539,6 +543,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                       value={requestData.graphqlQuery}
                       onChange={handleGraphqlQueryChange}
                       variables={useCaseVariables}
+                      urls={urls}
                       darkMode={darkMode}
                       placeholder="query { ... }"
                       isTextarea
@@ -553,6 +558,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                       value={requestData.graphqlVariables}
                       onChange={handleGraphqlVariablesChange}
                       variables={useCaseVariables}
+                      urls={urls}
                       darkMode={darkMode}
                       placeholder='{ "variable": "value" }'
                       isTextarea

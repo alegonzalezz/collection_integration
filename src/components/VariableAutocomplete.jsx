@@ -1,13 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Variable, Search, X } from 'lucide-react'
+import { Variable, Search, X, Link } from 'lucide-react'
 
-const VariableAutocomplete = ({ value, onChange, variables, darkMode, placeholder, isTextarea = false, rows = 4 }) => {
+const VariableAutocomplete = ({ value, onChange, variables, urls, darkMode, placeholder, isTextarea = false, rows = 4 }) => {
   const [showPopup, setShowPopup] = useState(false)
   const [filter, setFilter] = useState('')
   const inputRef = useRef(null)
   const lastFocusedElement = useRef(null)
   const filterInputRef = useRef(null)
   const savedCursorPosition = useRef(null)
+
+  const urlVariables = (urls || []).map(url => ({
+    name: url.name,
+    jsonPath: url.name,
+    requestName: 'URL',
+    isUrl: true
+  }))
+
+  const allVariables = [...variables, ...urlVariables]
 
   const getCursorPosition = useCallback(() => {
     return inputRef.current?.selectionStart || savedCursorPosition.current || 0
@@ -47,7 +56,7 @@ const VariableAutocomplete = ({ value, onChange, variables, darkMode, placeholde
     }
   }, [showPopup, value])
 
-  const filteredVariables = variables.filter(v =>
+  const filteredVariables = allVariables.filter(v =>
     v.name.toLowerCase().includes(filter.toLowerCase())
   )
 
@@ -176,13 +185,17 @@ const VariableAutocomplete = ({ value, onChange, variables, darkMode, placeholde
                       onClick={() => handleSelectVariable(variable.name)}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${darkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100'}`}
                     >
-                      <Variable className={`w-4 h-4 flex-shrink-0 ${darkMode ? 'text-cyan-400' : 'text-cyan-500'}`} />
+                      {variable.isUrl ? (
+                        <Link className={`w-4 h-4 flex-shrink-0 ${darkMode ? 'text-amber-400' : 'text-amber-500'}`} />
+                      ) : (
+                        <Variable className={`w-4 h-4 flex-shrink-0 ${darkMode ? 'text-cyan-400' : 'text-cyan-500'}`} />
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-slate-800'}`}>
                           {variable.name}
                         </p>
                         <p className={`text-xs truncate ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                          {variable.jsonPath} • {variable.requestName}
+                          {variable.isUrl ? 'URL • ' + variable.jsonPath : variable.jsonPath + ' • ' + variable.requestName}
                         </p>
                       </div>
                     </button>

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Layers, Sun, Moon, Upload, FileJson } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import MainEditor from './components/MainEditor'
+import URLManager from './components/URLManager'
 import { emptyCollection, importCollection } from './lib/domain-logic'
 
 function App() {
@@ -129,7 +130,6 @@ function App() {
     const file = event.target.files[0]
     if (!file) return
 
-    // Validar que sea un archivo JSON
     if (!file.name.endsWith('.json')) {
       setImportError('Por favor selecciona un archivo JSON')
       return
@@ -146,7 +146,6 @@ function App() {
         setSelectedUseCaseId(null)
         setImportError(null)
         
-        // Resetear el input para permitir cargar el mismo archivo nuevamente
         event.target.value = ''
       } catch (error) {
         console.error('Error importing collection:', error)
@@ -157,6 +156,13 @@ function App() {
       setImportError('Error al leer el archivo')
     }
     reader.readAsText(file)
+  }
+
+  const handleUpdateUrls = (urls) => {
+    setCollection(prev => ({
+      ...prev,
+      info: { ...prev.info, urls }
+    }))
   }
 
   return (
@@ -172,6 +178,11 @@ function App() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <URLManager
+            collection={collection}
+            onUpdateUrls={handleUpdateUrls}
+            darkMode={darkMode}
+          />
           {/* Botón de Importar */}
           <button
             onClick={handleImportClick}
@@ -246,6 +257,7 @@ function App() {
           onExport={handleExport}
           darkMode={darkMode}
           useCaseVariables={getUseCaseVariables(collection, selectedUseCaseId)}
+          urls={collection.info?.urls || []}
         />
       </div>
     </div>
