@@ -128,18 +128,26 @@ const exportCollectionWithEnv = (collection, env = 'local') => {
         if (item.request.url) {
           if (typeof item.request.url === 'string') {
             item.request.url = replaceUrlVariables(item.request.url, urls, env);
-          } else if (item.request.url.raw !== undefined) {
-            item.request.url.raw = replaceUrlVariables(item.request.url.raw || '', urls, env);
-          }
-          if (item.request.url.host && Array.isArray(item.request.url.host)) {
-            item.request.url.host = item.request.url.host.map(h => replaceUrlVariables(h, urls, env));
+          } else if (item.request.url) {
+            if (item.request.url.raw !== undefined) {
+              item.request.url.raw = replaceUrlVariables(item.request.url.raw || '', urls, env);
+            }
+            if (item.request.url.host && Array.isArray(item.request.url.host)) {
+              item.request.url.host = item.request.url.host.map(h => {
+                const replaced = replaceUrlVariables(h, urls, env);
+                return replaced || h;
+              });
+              if (item.request.url.host.length === 1 && item.request.url.host[0] === '' && item.request.url.raw) {
+                item.request.url.host = [item.request.url.raw];
+              }
+            }
           }
         }
         
         if (item.request.header) {
           item.request.header = item.request.header.map(h => ({
             ...h,
-            value: replaceUrlVariables(h.value, urls, env)
+            value: replaceUrlVariables(h.value || '', urls, env)
           }));
         }
         

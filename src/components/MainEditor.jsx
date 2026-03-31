@@ -101,9 +101,27 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
   }
 
   const handleUrlChange = (value) => {
+    let host = [value];
+    let path = '';
+    
+    if (value && (value.startsWith('http://') || value.startsWith('https://'))) {
+      try {
+        const urlObj = new URL(value);
+        host = urlObj.host.split('.');
+        path = urlObj.pathname + urlObj.search + urlObj.hash;
+      } catch (e) {
+        const parts = value.split('/');
+        const filteredParts = parts.filter(p => p && !p.startsWith('http:') && !p.startsWith('https:'));
+        if (filteredParts.length > 0) {
+          host = [filteredParts[0]];
+          path = '/' + filteredParts.slice(1).join('/');
+        }
+      }
+    }
+    
     onUpdateRequest(selectedRequestId, {
       request: {
-        url: { raw: value, host: [value] }
+        url: { raw: value, host: host, path: path }
       }
     })
   }
