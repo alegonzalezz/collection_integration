@@ -365,15 +365,8 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
           <div className={`w-24 h-24 mx-auto mb-6 rounded-3xl flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-gradient-to-br from-blue-600/20 to-indigo-600/20 shadow-2xl shadow-blue-900/20' : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/25'}`}>
             <Layers className="w-12 h-12 text-white" />
           </div>
-          <h2 className={`text-2xl font-bold mb-3 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-slate-800'}`}>API Collection Builder</h2>
-          <p className={`mb-6 transition-colors duration-300 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Select a request from the sidebar to edit</p>
-          <button
-            onClick={onExport}
-            className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-xl ${darkMode ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-blue-900/50' : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-blue-500/25'}`}
-          >
-            <Download className="w-5 h-5" />
-            Export Collection
-          </button>
+          <h2 className={`text-2xl font-bold mb-3 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Select a request</h2>
+          <p className={`transition-colors duration-300 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Choose a request from the sidebar to start editing</p>
         </div>
       </div>
     )

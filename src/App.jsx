@@ -312,9 +312,17 @@ function App() {
           <div className={`p-2.5 rounded-xl shadow-lg transition-all duration-300 ${darkMode ? 'bg-gradient-to-br from-blue-600 to-purple-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
             <Layers className="w-6 h-6 text-white" />
           </div>
-          <div>
-            <h1 className={`text-xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-slate-800'}`}>API Collection Builder</h1>
-            <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Build and manage Postman collections</p>
+          <div className="flex flex-col">
+            <input
+              type="text"
+              value={collection.info.name}
+              onChange={(e) => setCollection(prev => ({
+                ...prev,
+                info: { ...prev.info, name: e.target.value }
+              }))}
+              className={`text-xl font-bold tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 ${darkMode ? 'text-white' : 'text-slate-800'}`}
+              placeholder="Collection name"
+            />
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -420,15 +428,14 @@ function App() {
       )}
 
       {/* Info de la collection importada */}
-      {collection.info.name !== 'Nueva Coleccion' && (
+      {collection.info.name && collection.info.name !== 'Nueva Coleccion' && collection.info.name !== 'Nueva Coleccion' && collection.info.name.length > 0 && (
         <div className={`px-6 py-2 ${darkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'} border-b`}>
           <div className="flex items-center gap-2">
             <FileJson className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
             <p className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-              Collection: <strong>{collection.info.name}</strong>
               {collection.item.length > 0 && (
-                <span className="ml-2">
-                  ({collection.item.length} casos de uso, {collection.item.reduce((acc, uc) => acc + uc.item.length, 0)} requests)
+                <span>
+                  {collection.item.length} use cases, {collection.item.reduce((acc, uc) => acc + uc.item.length, 0)} requests
                 </span>
               )}
             </p>
