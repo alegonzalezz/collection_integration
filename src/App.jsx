@@ -13,9 +13,7 @@ function App() {
   const [importError, setImportError] = useState(null)
   const [currentEnv, setCurrentEnv] = useState('local')
   const collectionInputRef = useRef(null)
-  const environmentInputRef = useRef(null)
   const urlsInputRef = useRef(null)
-  const envFilesInputRef = useRef(null)
 
   const handleAddUseCase = (name) => {
     setCollection(prev => ({
@@ -156,41 +154,67 @@ function App() {
   }
 
   const handleImportUrls = (event) => {
-    const file = event.target.files[0]
-    if (!file) return
+    const files = event.target.files
+    if (!files || files.length === 0) return
 
-    if (!file.name.endsWith('.json')) {
-      setImportError('Por favor selecciona un archivo JSON')
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        const jsonData = JSON.parse(e.target.result)
-        
-        if (!jsonData.urls || !Array.isArray(jsonData.urls)) {
-          setImportError('El archivo no contiene URLs válidas')
-          event.target.value = ''
-          return
+    const currentUrls = collection.info?.urls || []
+    const urlsMap = {}
+    
+    currentUrls.forEach(url => {
+      urlsMap[url.name] = { ...url }
+    })
+    
+    Array.from(files).forEach(file => {
+      if (!file.name.endsWith('.json')) return
+      
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const jsonData = JSON.parse(e.target.result)
+          
+          if (isEnvironmentFile(jsonData)) {
+            const envName = jsonData.name
+            if (!['local', 'dev', 'prod'].includes(envName)) return
+            
+            jsonData.values.forEach(v => {
+              if (v.enabled) {
+                if (!urlsMap[v.key]) {
+                  urlsMap[v.key] = {
+                    name: v.key,
+                    local: 'http://localhost:3000',
+                    dev: 'https://dev-api.com',
+                    prod: 'https://api.com'
+                  }
+                }
+                urlsMap[v.key][envName] = v.value
+              }
+            })
+          } else if (jsonData.urls && Array.isArray(jsonData.urls)) {
+            jsonData.urls.forEach(url => {
+              urlsMap[url.name] = {
+                name: url.name,
+                local: url.local || 'http://localhost:3000',
+                dev: url.dev || 'https://dev-api.com',
+                prod: url.prod || 'https://api.com'
+              }
+            })
+          }
+          
+          const updatedUrls = Object.values(urlsMap)
+          setCollection(prev => ({
+            ...prev,
+            info: { ...prev.info, urls: updatedUrls }
+          }))
+          
+          setImportError(null)
+        } catch (error) {
+          console.error('Error processing URLs file:', error)
         }
-        
-        setCollection(prev => ({
-          ...prev,
-          info: { ...prev.info, urls: jsonData.urls }
-        }))
-        
-        setImportError(null)
-        event.target.value = ''
-      } catch (error) {
-        console.error('Error importing URLs:', error)
-        setImportError('Error al importar las URLs.')
       }
-    }
-    reader.onerror = () => {
-      setImportError('Error al leer el archivo')
-    }
-    reader.readAsText(file)
+      reader.readAsText(file)
+    })
+    
+    event.target.value = ''
   }
 
   const getUseCaseVariables = (collection, useCaseId) => {
@@ -383,11 +407,11 @@ function App() {
             <span className="hidden sm:inline">Export</span>
           </button>
           
-          {/* Import URLs */}
+          {/* Import URLs - multiple files allowed */}
           <button
             onClick={() => urlsInputRef.current?.click()}
             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
-            title="Import URLs"
+            title="Import URLs - select multiple files"
           >
             <Upload className="w-4 h-4" />
             <span className="hidden sm:inline">Import URLs</span>
@@ -397,23 +421,6 @@ function App() {
             type="file"
             accept=".json"
             onChange={handleImportUrls}
-            className="hidden"
-          />
-          
-          {/* Import Env Files */}
-          <button
-            onClick={() => envFilesInputRef.current?.click()}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
-            title="Import Env Files (select multiple)"
-          >
-            <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Import Env</span>
-          </button>
-          <input
-            ref={envFilesInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleImportEnvironment}
             className="hidden"
             multiple
           />
