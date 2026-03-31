@@ -106,6 +106,25 @@ function App() {
     fileInputRef.current?.click()
   }
 
+  const getUseCaseVariables = (collection, useCaseId) => {
+    const useCase = collection.item.find(uc => uc.name === useCaseId)
+    if (!useCase || !useCase.item) return []
+    
+    const variables = []
+    useCase.item.forEach(request => {
+      const tests = request.event?.[0]?.script?.exec || []
+      tests.forEach(test => {
+        if (test && test.includes('pm.globals.set("')) {
+          const match = test.match(/pm\.globals\.set\("([^"]+)",\s*jsonData\.(.+?)(?:;|$)/)
+          if (match) {
+            variables.push({ name: match[1], jsonPath: match[2], requestName: request.name })
+          }
+        }
+      })
+    })
+    return variables
+  }
+
   const handleFileChange = (event) => {
     const file = event.target.files[0]
     if (!file) return
@@ -226,6 +245,7 @@ function App() {
           onUpdateRequest={handleUpdateRequest}
           onExport={handleExport}
           darkMode={darkMode}
+          useCaseVariables={getUseCaseVariables(collection, selectedUseCaseId)}
         />
       </div>
     </div>

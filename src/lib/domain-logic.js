@@ -292,6 +292,85 @@ const parseRequest = (item) => {
   };
 };
 
+const generateVariableExtraction = (variableName, jsonPath) => {
+  return `var jsonData = pm.response.json();
+pm.globals.set("${variableName}", jsonData.${jsonPath});`;
+};
+
+/**
+ * Agrega una extracción de variable a una request existente
+ * @param {Object} request - La request a la que agregar la extracción
+ * @param {string} variableName - Nombre de la variable
+ * @param {string} jsonPath - Path del JSON
+ * @returns {Object} - Request actualizada con la nueva extracción
+ */
+const addVariableExtraction = (request, variableName, jsonPath) => {
+  const extractionCode = generateVariableExtraction(variableName, jsonPath);
+  const existingTests = request.event?.[0]?.script?.exec || [];
+  const updatedTests = [...existingTests, extractionCode];
+  
+  return {
+    ...request,
+    event: [
+      {
+        listen: 'test',
+        script: {
+          exec: updatedTests,
+          type: 'text/javascript'
+        }
+      }
+    ]
+  };
+};
+
+/**
+ * Elimina una extracción de variable de una request por su índice
+ * @param {Object} request - La request de la que eliminar la extracción
+ * @param {number} extractionIndex - Índice de la extracción a eliminar
+ * @returns {Object} - Request actualizada sin la extracción
+ */
+const removeVariableExtraction = (request, extractionIndex) => {
+  const existingTests = request.event?.[0]?.script?.exec || [];
+  const updatedTests = existingTests.filter((_, index) => index !== extractionIndex);
+  
+  return {
+    ...request,
+    event: [
+      {
+        listen: 'test',
+        script: {
+          exec: updatedTests,
+          type: 'text/javascript'
+        }
+      }
+    ]
+  };
+};
+
+/**
+ * Obtiene las extracciones de variable de una request
+ * @param {Object} request - La request a analizar
+ * @returns {Array} - Array de objetos { name, jsonPath } de las extracciones
+ */
+const getVariableExtractions = (request) => {
+  const existingTests = request.event?.[0]?.script?.exec || [];
+  const extractions = [];
+  
+  existingTests.forEach(test => {
+    if (test.includes('pm.globals.set("')) {
+      const match = test.match(/pm\.globals\.set\("([^"]+)",\s*jsonData\.(.+)\)/);
+      if (match) {
+        extractions.push({
+          name: match[1],
+          jsonPath: match[2]
+        });
+      }
+    }
+  });
+  
+  return extractions;
+};
+
 export { 
   emptyCollection, 
   createUseCase, 
@@ -302,5 +381,9 @@ export {
   generateJsonPathTest,
   generateArrayLengthTest,
   addTestToRequest,
-  removeTestFromRequest
+  removeTestFromRequest,
+  generateVariableExtraction,
+  addVariableExtraction,
+  removeVariableExtraction,
+  getVariableExtractions
 };

@@ -1,12 +1,18 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle, GitBranch, List, Activity, Eye, Settings } from 'lucide-react'
-import { generateStatusCodeTest, generateJsonPathTest, generateArrayLengthTest } from '../lib/domain-logic'
+import { Download, FileJson, Code, Hash, Plus, X, Layers, Zap, Box, Globe, FileCode, CheckCircle, GitBranch, List, Activity, Eye, Settings, Variable } from 'lucide-react'
+import { generateStatusCodeTest, generateJsonPathTest, generateArrayLengthTest, generateVariableExtraction } from '../lib/domain-logic'
 
-const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode }) => {
+import VariableAutocomplete from './VariableAutocomplete'
+
+const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode, useCaseVariables }) => {
   const [activeTab, setActiveTab] = useState('headers')
   
   // Estado para el tipo de test seleccionado
   const [selectedTestType, setSelectedTestType] = useState('status')
+  
+  // Estado para variables
+  const [variableName, setVariableName] = useState('')
+  const [variableJsonPath, setVariableJsonPath] = useState('')
   
   // Estado para tipo de body
   const [bodyType, setBodyType] = useState('raw')
@@ -22,6 +28,20 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
   const [expectedValue, setExpectedValue] = useState('')
   const [arrayPath, setArrayPath] = useState('')
   const [arrayLength, setArrayLength] = useState('')
+
+  // Función para extraer variables de los tests
+  const extractVariables = (tests) => {
+    const extractions = []
+    tests.forEach(test => {
+      if (test && test.includes('pm.globals.set("')) {
+        const match = test.match(/pm\.globals\.set\("([^"]+)",\s*jsonData\.(.+?)(?:;|$)/)
+        if (match) {
+          extractions.push({ name: match[1], jsonPath: match[2] })
+        }
+      }
+    })
+    return extractions
+  }
 
   const requestData = useMemo(() => {
     if (!selectedRequestId || !selectedUseCaseId) return null
@@ -44,7 +64,8 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
       rawBody: body?.raw || '',
       graphqlQuery: isGraphql ? body?.graphql?.query || '' : '',
       graphqlVariables: isGraphql ? body?.graphql?.variables || '' : '',
-      tests: request.event?.[0]?.script?.exec || []
+      tests: request.event?.[0]?.script?.exec || [],
+      variables: extractVariables(request.event?.[0]?.script?.exec || [])
     }
   }, [selectedRequestId, selectedUseCaseId, collection])
 
@@ -215,6 +236,55 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
     })
   }
 
+  const handleAddVariable = () => {
+    if (!variableName.trim() || !variableJsonPath.trim()) return
+    
+    const generatedCode = generateVariableExtraction(variableName.trim(), variableJsonPath.trim())
+    const updatedTests = [...requestData.tests, generatedCode]
+    
+    onUpdateRequest(selectedRequestId, {
+      event: [
+        {
+          listen: 'test',
+          script: {
+            exec: updatedTests,
+            type: 'text/javascript'
+          }
+        }
+      ]
+    })
+    
+    setVariableName('')
+    setVariableJsonPath('')
+  }
+
+  const handleRemoveVariable = (index) => {
+    const variableTests = requestData.tests.filter((test, i) => {
+      if (!test.includes('pm.globals.set("')) return true
+      const match = test.match(/pm\.globals\.set\("([^"]+)",/)
+      if (!match) return true
+      const varIndex = requestData.variables.findIndex(v => v.name === match[1])
+      return varIndex !== index
+    })
+    
+    onUpdateRequest(selectedRequestId, {
+      event: [
+        {
+          listen: 'test',
+          script: {
+            exec: variableTests,
+            type: 'text/javascript'
+          }
+        }
+      ]
+    })
+  }
+
+  const generatedVariableCode = useMemo(() => {
+    if (!variableName.trim() || !variableJsonPath.trim()) return ''
+    return generateVariableExtraction(variableName.trim(), variableJsonPath.trim())
+  }, [variableName, variableJsonPath])
+
   const testTypes = [
     { 
       id: 'status', 
@@ -266,7 +336,8 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
   const tabs = [
     { id: 'headers', label: 'Headers', icon: Hash },
     { id: 'body', label: 'Body', icon: Box },
-    { id: 'tests', label: 'Tests', icon: Code }
+    { id: 'tests', label: 'Tests', icon: Code },
+    { id: 'variables', label: 'Variables', icon: Variable }
   ]
 
   if (!requestData) {
@@ -312,12 +383,12 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
             <div className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
               <Globe className="w-4 h-4" />
             </div>
-            <input
-              type="text"
+            <VariableAutocomplete
               value={requestData.url}
-              onChange={(e) => handleUrlChange(e.target.value)}
+              onChange={handleUrlChange}
+              variables={useCaseVariables}
+              darkMode={darkMode}
               placeholder="https://api.example.com/endpoint"
-              className={`w-full pl-12 pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
             />
           </div>
         </div>
@@ -364,21 +435,21 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
               {requestData.headers.map((header, index) => (
                 <div key={index} className={`flex gap-3 items-center p-2 rounded-xl transition-all duration-300 group hover:scale-[1.01] ${darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-slate-50'}`}>
                   <div className={`flex-1 relative`}>
-                    <input
-                      type="text"
+                    <VariableAutocomplete
                       value={header.key}
-                      onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
+                      onChange={(value) => handleHeaderChange(index, 'key', value)}
+                      variables={useCaseVariables}
+                      darkMode={darkMode}
                       placeholder="Key"
-                      className={`w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
                     />
                   </div>
                   <div className={`flex-1 relative`}>
-                    <input
-                      type="text"
+                    <VariableAutocomplete
                       value={header.value}
-                      onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
+                      onChange={(value) => handleHeaderChange(index, 'value', value)}
+                      variables={useCaseVariables}
+                      darkMode={darkMode}
                       placeholder="Value"
-                      className={`w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
                     />
                   </div>
                   <button
@@ -431,11 +502,14 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
 
               {bodyType === 'raw' && (
                 <div className="relative">
-                  <textarea
+                  <VariableAutocomplete
                     value={requestData.rawBody}
-                    onChange={(e) => handleRawBodyChange(e.target.value)}
+                    onChange={handleRawBodyChange}
+                    variables={useCaseVariables}
+                    darkMode={darkMode}
                     placeholder="Enter request body (JSON, XML, etc.)"
-                    className={`w-full h-80 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono resize-none ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+                    isTextarea
+                    rows={32}
                   />
                   <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-amber-900/30 text-amber-400 border border-amber-700' : 'bg-amber-100 text-amber-700 border border-amber-200'}`}>
                     <div className="flex items-center gap-1.5">
@@ -461,22 +535,28 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                     <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                       Query
                     </label>
-                    <textarea
+                    <VariableAutocomplete
                       value={requestData.graphqlQuery}
-                      onChange={(e) => handleGraphqlQueryChange(e.target.value)}
+                      onChange={handleGraphqlQueryChange}
+                      variables={useCaseVariables}
+                      darkMode={darkMode}
                       placeholder="query { ... }"
-                      className={`w-full h-40 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono resize-none ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-pink-500 border'}`}
+                      isTextarea
+                      rows={10}
                     />
                   </div>
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                       Variables (JSON)
                     </label>
-                    <textarea
+                    <VariableAutocomplete
                       value={requestData.graphqlVariables}
-                      onChange={(e) => handleGraphqlVariablesChange(e.target.value)}
+                      onChange={handleGraphqlVariablesChange}
+                      variables={useCaseVariables}
+                      darkMode={darkMode}
                       placeholder='{ "variable": "value" }'
-                      className={`w-full h-32 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono resize-none ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-pink-500 border'}`}
+                      isTextarea
+                      rows={8}
                     />
                   </div>
                 </div>
@@ -739,6 +819,117 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
                   <Zap className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p className="text-sm">No hay tests agregados</p>
                   <p className="text-xs mt-1">Selecciona un tipo de test y configúralo arriba</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'variables' && (
+            <div className="space-y-6">
+              <div className={`p-4 rounded-xl border ${darkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Variable className={`w-5 h-5 ${darkMode ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <h3 className={`text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Extraer Variable de Respuesta
+                  </h3>
+                </div>
+                
+                <p className={`text-xs mb-4 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Extrae un valor del JSON de respuesta y guárdalo en una variable global para usarlo en siguientes requests
+                </p>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Nombre de Variable *
+                    </label>
+                    <input
+                      type="text"
+                      value={variableName}
+                      onChange={(e) => setVariableName(e.target.value)}
+                      placeholder="Ej: userId, authToken, productId"
+                      className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-cyan-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-cyan-500 border'}`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      JSON Path *
+                    </label>
+                    <input
+                      type="text"
+                      value={variableJsonPath}
+                      onChange={(e) => setVariableJsonPath(e.target.value)}
+                      placeholder="Ej: data.user.id, response[0].token"
+                      className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-cyan-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-cyan-500 border'}`}
+                    />
+                  </div>
+                </div>
+                
+                {generatedVariableCode && (
+                  <div className={`mt-4 p-3 rounded-lg ${darkMode ? 'bg-slate-900/50' : 'bg-slate-800'}`}>
+                    <p className={`text-xs mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-400'}`}>Código que se generará:</p>
+                    <pre className={`text-xs font-mono ${darkMode ? 'text-cyan-300' : 'text-cyan-400'}`}>
+                      {generatedVariableCode}
+                    </pre>
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleAddVariable}
+                  disabled={!variableName.trim() || !variableJsonPath.trim()}
+                  className={`w-full mt-4 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+                    variableName.trim() && variableJsonPath.trim()
+                      ? (darkMode ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-cyan-500 hover:bg-cyan-600 text-white')
+                      : (darkMode ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-slate-200 text-slate-400 cursor-not-allowed')
+                  }`}
+                >
+                  <Plus className="w-4 h-4" />
+                  Agregar Extracción
+                </button>
+              </div>
+
+              {requestData.variables.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className={`text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Variables Extraídas ({requestData.variables.length})
+                  </h3>
+                  {requestData.variables.map((variable, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-start justify-between p-3 rounded-xl transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border border-slate-600' : 'bg-slate-50 border border-slate-200'}`}
+                    >
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <Variable className={`w-4 h-4 mt-0.5 flex-shrink-0 ${darkMode ? 'text-cyan-400' : 'text-cyan-500'}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className={`text-sm font-medium ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                              {variable.name}
+                            </p>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${darkMode ? 'bg-cyan-900/30 text-cyan-400' : 'bg-cyan-100 text-cyan-600'}`}>
+                              Global
+                            </span>
+                          </div>
+                          <p className={`text-xs font-mono mt-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                            pm.globals.set("{variable.name}", jsonData.{variable.jsonPath})
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveVariable(index)}
+                        className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 flex-shrink-0 ml-2 ${darkMode ? 'text-rose-400 hover:bg-rose-900/30' : 'text-rose-500 hover:bg-rose-50'}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {requestData.variables.length === 0 && (
+                <div className={`text-center py-8 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <Variable className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">No hay variables extraídas</p>
+                  <p className="text-xs mt-1">Configura una extracción arriba para guardar valores del response</p>
                 </div>
               )}
             </div>
