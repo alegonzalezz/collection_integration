@@ -92,17 +92,17 @@ const DocumentationViewer = () => {
                   <div>
                     <h4 className="text-lg font-semibold mb-2 text-slate-800">Usar una URL en un Request</h4>
                     <ol className="list-decimal list-inside space-y-2 text-slate-600">
-                      <li>En el campo URL del editor, escribir "{{"</li>
+                      <li>En el campo URL del editor, escribir <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">{'{{'}</code></li>
                       <li>Aparece el autocomplete con las URLs disponibles</li>
                       <li>Seleccionar la URL deseada</li>
-                      <li>Se insertará la variable como "{{NOMBRE_URL}}"</li>
+                      <li>Se insertará la variable como <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">{'{{NOMBRE_URL}}'}</code></li>
                     </ol>
                   </div>
                   
                   <div>
-                    <h4 className="text-lg font-semibold mb-2 text-slate-800">Expandir/Contraer URLs</h4>
+                    <h5 className="text-sm font-medium mb-1 text-slate-800">Usar una Variable:</h5>
                     <p className="text-slate-600">
-                      Cada URL en el gestor tiene un chevron (flecha) a la izquierda para expandirla y ver/editar sus valores directamente.
+                      En cualquier campo (URL, headers, body), usar <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">{'{{nombreVariable}}'}</code>
                     </p>
                   </div>
                 </div>
@@ -260,7 +260,7 @@ const DocumentationViewer = () => {
                   <li><strong>Usar variables en URLs:</strong> Define URLs base y úsalas en todos los requests para cambiar fácilmente entre entornos.</li>
                   <li><strong>Tests encadenados:</strong> Extrae variables en un request y úsalas en el siguiente para crear flujos.</li>
                   <li><strong>Dark mode:</strong> Úsalo para sesiones largas de trabajo.</li>
-                  <li><strong>Autocomplete:</strong> Escribe "{{" en cualquier campo para ver variables y URLs disponibles.</li>
+                  <li><strong>Autocomplete:</strong> Escribe <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">{'{{'}</code> en cualquier campo para ver variables y URLs disponibles.</li>
                   <li><strong>Collapse editor:</strong> Usa la flecha izquierda en el header del editor para volver rápidamente a la sidebar.</li>
                 </ul>
               </div>
