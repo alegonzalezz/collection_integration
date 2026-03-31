@@ -382,7 +382,7 @@ function App() {
                       : env === 'dev'
                         ? (darkMode ? 'bg-amber-600 text-white' : 'bg-amber-500 text-white')
                         : (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
-                    : (darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-800)'
+                    : (darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-800')
                 }`}
               >
                 {env.toUpperCase()}
