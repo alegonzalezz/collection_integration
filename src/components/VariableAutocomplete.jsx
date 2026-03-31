@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Variable, Search, X, Link, ChevronDown, ChevronRight, Pencil } from 'lucide-react'
+import { Variable, Search, X, Link } from 'lucide-react'
 
 const VariableAutocomplete = ({ value, onChange, variables, urls, darkMode, placeholder, isTextarea = false, rows = 4, onEditUrl }) => {
   const [showPopup, setShowPopup] = useState(false)
@@ -8,7 +8,6 @@ const VariableAutocomplete = ({ value, onChange, variables, urls, darkMode, plac
   const lastFocusedElement = useRef(null)
   const filterInputRef = useRef(null)
   const savedCursorPosition = useRef(null)
-  const [expandedUrls, setExpandedUrls] = useState({})
 
   const urlVariables = (urls || []).map(url => ({
     name: url.name,
@@ -109,13 +108,6 @@ const VariableAutocomplete = ({ value, onChange, variables, urls, darkMode, plac
     return () => window.removeEventListener('keydown', handleGlobalKeyDown)
   }, [showPopup])
 
-  const toggleUrlExpand = (urlName) => {
-    setExpandedUrls(prev => ({
-      ...prev,
-      [urlName]: !prev[urlName]
-    }))
-  }
-
   const inputClassName = `w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all duration-300 font-mono ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`
 
   return (
@@ -184,60 +176,20 @@ const VariableAutocomplete = ({ value, onChange, variables, urls, darkMode, plac
                   {filteredVariables.map((variable, index) => (
                     <div key={index} className="mb-1">
                       {variable.isUrl ? (
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => toggleUrlExpand(variable.name)}
-                              className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
-                            >
-                              {expandedUrls[variable.name] ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4" />
-                              )}
-                            </button>
-                            <Link className={`w-4 h-4 flex-shrink-0 ${darkMode ? 'text-amber-400' : 'text-amber-500'}`} />
-                            <button
-                              onClick={() => handleSelectVariable(variable.name)}
-                              className="flex-1 text-left"
-                            >
-                              <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-slate-800'}`}>
-                                {variable.name}
-                              </p>
-                            </button>
-                            {onEditUrl && (
-                              <button
-                                onClick={() => onEditUrl(variable.urlData)}
-                                className={`p-1.5 rounded-lg transition-colors ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                            )}
+                        <button
+                          onClick={() => handleSelectVariable(variable.name)}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${darkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100'}`}
+                        >
+                          <Link className={`w-4 h-4 flex-shrink-0 ${darkMode ? 'text-amber-400' : 'text-amber-500'}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                              {variable.name}
+                            </p>
+                            <p className={`text-xs truncate ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                              URL
+                            </p>
                           </div>
-                          
-                          {expandedUrls[variable.name] && (
-                            <div className={`ml-8 mt-2 space-y-1 ${darkMode ? 'bg-slate-700/50 p-2 rounded-lg' : 'bg-slate-100 p-2 rounded-lg'}`}>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-xs font-medium w-12 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>LOCAL</span>
-                                <span className={`text-xs font-mono ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                                  {variable.urlData?.local || 'http://localhost:3000'}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-xs font-medium w-12 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`}>DEV</span>
-                                <span className={`text-xs font-mono ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                                  {variable.urlData?.dev || 'https://dev-api.com'}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-xs font-medium w-12 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>PROD</span>
-                                <span className={`text-xs font-mono ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                                  {variable.urlData?.prod || 'https://api.com'}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        </button>
                       ) : (
                         <button
                           onClick={() => handleSelectVariable(variable.name)}
