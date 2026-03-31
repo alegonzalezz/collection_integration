@@ -496,36 +496,32 @@ function App() {
         <main className="flex-1 overflow-hidden">
           <Routes>
             <Route path="/collection_integration/" element={
-              <>
-                {selectedRequestId ? (
-                  <MainEditor
-                    collection={collection}
-                    selectedRequestId={selectedRequestId}
-                    selectedUseCaseId={selectedUseCaseId}
-                    onUpdateRequest={handleUpdateRequest}
-                    darkMode={darkMode}
-                    useCaseVariables={getUseCaseVariables(collection, selectedUseCaseId)}
-                    urls={collection.info?.urls || []}
-                    onCollapse={() => {
-                      setSelectedRequestId(null)
-                      setSelectedUseCaseId(null)
-                    }}
-                  />
-                ) : (
-                  <div className="flex-1 p-8 flex flex-col items-center justify-center h-full transition-all duration-300 bg-gradient-to-br from-slate-50 to-blue-50">
-                    <div className="text-center max-w-md">
-                      <div className="w-24 h-24 mx-auto mb-6 rounded-3xl flex items-center justify-center transition-all duration-300 bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/25">
-                        <Layers className="w-12 h-12 text-white" />
-                      </div>
-                      <h2 className="text-2xl font-bold mb-3 text-slate-800">Select a request</h2>
-                      <p className="text-slate-500">Choose a request from the sidebar to start editing</p>
+              selectedRequestId ? (
+                <MainEditor
+                  collection={collection}
+                  selectedRequestId={selectedRequestId}
+                  selectedUseCaseId={selectedUseCaseId}
+                  onUpdateRequest={handleUpdateRequest}
+                  darkMode={darkMode}
+                  useCaseVariables={getUseCaseVariables(collection, selectedUseCaseId)}
+                  urls={collection.info?.urls || []}
+                  onCollapse={() => {
+                    setSelectedRequestId(null)
+                    setSelectedUseCaseId(null)
+                  }}
+                />
+              ) : (
+                <div className="flex-1 p-8 flex flex-col items-center justify-center h-full transition-all duration-300 bg-gradient-to-br from-slate-50 to-blue-50">
+                  <div className="text-center max-w-md">
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-3xl flex items-center justify-center transition-all duration-300 bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/25">
+                      <Layers className="w-12 h-12 text-white" />
                     </div>
+                    <h2 className="text-2xl font-bold mb-3 text-slate-800">Select a request</h2>
+                    <p className="text-slate-500">Choose a request from the sidebar to start editing</p>
                   </div>
-                )}
-              </>
-            }>
-              <Navigate to="/collection_integration/documentation" replace />
-            </Route>
+                </div>
+              )
+            } />
             <Route path="/collection_integration/documentation" element={
               <DocumentationViewer />
             } />
