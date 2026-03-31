@@ -12,6 +12,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(false)
   const [importError, setImportError] = useState(null)
   const [currentEnv, setCurrentEnv] = useState('local')
+  const [showUrlManager, setShowUrlManager] = useState(false)
   const collectionInputRef = useRef(null)
   const urlsInputRef = useRef(null)
 
@@ -362,6 +363,8 @@ function App() {
             darkMode={darkMode}
             currentEnv={currentEnv}
             onEnvChange={setCurrentEnv}
+            isOpen={showUrlManager}
+            onClose={() => setShowUrlManager(false)}
           />
           <div className={`flex items-center gap-1 px-1 py-1 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
             {['local', 'dev', 'prod'].map(env => (
@@ -495,6 +498,7 @@ function App() {
           darkMode={darkMode}
           useCaseVariables={getUseCaseVariables(collection, selectedUseCaseId)}
           urls={collection.info?.urls || []}
+          onEditUrl={() => setShowUrlManager(true)}
         />
       </div>
     </div>

@@ -4,7 +4,7 @@ import { generateStatusCodeTest, generateJsonPathTest, generateArrayLengthTest, 
 
 import VariableAutocomplete from './VariableAutocomplete'
 
-const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode, useCaseVariables, urls }) => {
+const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdateRequest, onExport, darkMode, useCaseVariables, urls, onEditUrl }) => {
   const [activeTab, setActiveTab] = useState('headers')
   
   // Estado para el tipo de test seleccionado
@@ -401,6 +401,7 @@ if (!requestData) {
               urls={urls}
               darkMode={darkMode}
               placeholder="https://api.example.com/endpoint"
+              onEditUrl={onEditUrl}
             />
           </div>
         </div>

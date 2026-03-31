@@ -1,9 +1,18 @@
 import { useState } from 'react'
 import { Plus, X, Link, Globe, Server, Database } from 'lucide-react'
 
-const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', onEnvChange }) => {
-  const [isOpen, setIsOpen] = useState(false)
+const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', onEnvChange, isOpen = false, onClose }) => {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isCurrentlyOpen = isOpen || internalOpen
   const urls = collection.info?.urls || []
+
+  const handleToggle = () => {
+    if (isOpen && onClose) {
+      onClose()
+    } else {
+      setInternalOpen(!internalOpen)
+    }
+  }
 
   const handleAddUrl = () => {
     const urlNames = ['USERS', 'ITEMS', 'AUTH', 'PRODUCTS', 'ORDERS', 'CUSTOMERS']
@@ -42,16 +51,16 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
       >
         <Link className="w-4 h-4" />
         <span className="hidden sm:inline">URLs ({urls.length})</span>
       </button>
 
-      {isOpen && (
+      {isCurrentlyOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="fixed inset-0 z-40" onClick={handleToggle} />
           <div className={`absolute right-0 top-full mt-2 w-96 max-h-[80vh] overflow-y-auto rounded-2xl shadow-2xl border z-50 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-200'}`}>
             <div className={`flex items-center justify-between p-4 border-b ${darkMode ? 'border-slate-600' : 'border-slate-200'}`}>
               <div className="flex items-center gap-2">
@@ -61,7 +70,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
                 </h3>
               </div>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleToggle}
                 className={`p-1.5 rounded-lg transition-colors ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
               >
                 <X className="w-5 h-5" />
