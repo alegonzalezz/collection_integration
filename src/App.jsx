@@ -15,6 +15,7 @@ function App() {
   const collectionInputRef = useRef(null)
   const environmentInputRef = useRef(null)
   const urlsInputRef = useRef(null)
+  const envFilesInputRef = useRef(null)
 
   const handleAddUseCase = (name) => {
     setCollection(prev => ({
@@ -251,51 +252,53 @@ function App() {
   }
 
   const handleImportEnvironment = (event) => {
-    const file = event.target.files[0]
-    if (!file) return
+    const files = event.target.files
+    if (!files || files.length === 0) return
 
-    if (!file.name.endsWith('.json')) {
-      setImportError('Por favor selecciona un archivo JSON')
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        const envData = JSON.parse(e.target.result)
+    const processFiles = (fileList) => {
+      const currentUrls = collection.info?.urls || []
+      const urlsMap = {}
+      
+      currentUrls.forEach(url => {
+        urlsMap[url.name] = { ...url }
+      })
+      
+      Array.from(fileList).forEach(file => {
+        if (!file.name.endsWith('.json')) return
         
-        if (!isEnvironmentFile(envData)) {
-          setImportError('El archivo no parece ser un environment válido de Postman')
-          event.target.value = ''
-          return
-        }
-        
-        const currentUrls = collection.info?.urls || []
-        const updatedUrls = currentUrls.map(url => {
-          const envVar = envData.values.find(v => v.key === url.name)
-          if (envVar && envVar.enabled) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          try {
+            const envData = JSON.parse(e.target.result)
+            
+            if (!isEnvironmentFile(envData)) return
+            
             const envName = envData.name
-            return { ...url, [envName]: envVar.value }
+            if (!['local', 'dev', 'prod'].includes(envName)) return
+            
+            envData.values.forEach(v => {
+              if (urlsMap[v.key] && v.enabled) {
+                urlsMap[v.key][envName] = v.value
+              }
+            })
+            
+            const updatedUrls = Object.values(urlsMap)
+            setCollection(prev => ({
+              ...prev,
+              info: { ...prev.info, urls: updatedUrls }
+            }))
+            
+            setImportError(null)
+          } catch (error) {
+            console.error('Error processing environment file:', error)
           }
-          return url
-        })
-        
-        setCollection(prev => ({
-          ...prev,
-          info: { ...prev.info, urls: updatedUrls }
-        }))
-        
-        setImportError(null)
-        event.target.value = ''
-      } catch (error) {
-        console.error('Error importing environment:', error)
-        setImportError('Error al importar el environment.')
-      }
+        }
+        reader.readAsText(file)
+      })
     }
-    reader.onerror = () => {
-      setImportError('Error al leer el archivo')
-    }
-    reader.readAsText(file)
+    
+    processFiles(files)
+    event.target.value = ''
   }
 
   const handleUpdateUrls = (urls) => {
@@ -395,6 +398,24 @@ function App() {
             accept=".json"
             onChange={handleImportUrls}
             className="hidden"
+          />
+          
+          {/* Import Env Files */}
+          <button
+            onClick={() => envFilesInputRef.current?.click()}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
+            title="Import Env Files (select multiple)"
+          >
+            <Upload className="w-4 h-4" />
+            <span className="hidden sm:inline">Import Env</span>
+          </button>
+          <input
+            ref={envFilesInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleImportEnvironment}
+            className="hidden"
+            multiple
           />
           
           {/* Export URLs */}
