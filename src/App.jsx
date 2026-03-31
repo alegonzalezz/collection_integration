@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Layers, Sun, Moon, Upload, FileJson } from 'lucide-react'
+import { Layers, Sun, Moon, Upload, Download, FileJson } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import MainEditor from './components/MainEditor'
 import URLManager from './components/URLManager'
@@ -96,7 +96,7 @@ function App() {
     })
   }
 
-  const handleExport = (env = null) => {
+  const handleExport = (type = 'all') => {
     const environments = ['local', 'dev', 'prod']
     const urls = collection.info?.urls || []
     
@@ -110,13 +110,15 @@ function App() {
       URL.revokeObjectURL(url)
     }
     
-    if (urls.length === 0) {
+    if (urls.length === 0 || type === 'collection') {
       downloadFile(collection, `${collection.info.name || 'collection'}.json`)
       return
     }
     
     const collectionWithVars = exportCollectionWithVariables(collection)
     downloadFile(collectionWithVars, `${collection.info.name || 'collection'}.json`)
+    
+    if (type === 'collection') return
     
     environments.forEach(envName => {
       const environment = exportEnvironment(collection, envName)
@@ -342,14 +344,15 @@ function App() {
               </button>
             ))}
           </div>
-          {/* Botón de Importar */}
+          
+          {/* Import Collection */}
           <button
             onClick={handleImportClick}
             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
             title="Importar Collection"
           >
             <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Collection</span>
+            <span className="hidden sm:inline">Import</span>
           </button>
           <input
             ref={collectionInputRef}
@@ -359,31 +362,17 @@ function App() {
             className="hidden"
           />
           
+          {/* Export Collection */}
           <button
-            onClick={handleImportEnvClick}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-            title="Importar Environment"
+            onClick={() => handleExport('collection')}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            title="Exportar Collection"
           >
-            <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Env</span>
-          </button>
-          <input
-            ref={environmentInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleImportEnvironment}
-            className="hidden"
-          />
-          
-          <button
-            onClick={handleExportUrls}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-            title="Exportar URLs"
-          >
-            <FileJson className="w-4 h-4" />
-            <span className="hidden sm:inline">Export URLs</span>
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Export</span>
           </button>
           
+          {/* Import URLs */}
           <button
             onClick={() => urlsInputRef.current?.click()}
             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
@@ -399,6 +388,16 @@ function App() {
             onChange={handleImportUrls}
             className="hidden"
           />
+          
+          {/* Export URLs */}
+          <button
+            onClick={handleExportUrls}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            title="Exportar URLs"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Export URLs</span>
+          </button>
           
           {/* Botón de Dark Mode */}
           <button
