@@ -119,7 +119,7 @@ const exportCollectionWithEnv = (collection, env = 'local') => {
   }));
   
   processedCollection.variable = [...(processedCollection.variable || []), ...variables];
-  
+
   const processItems = (items) => {
     if (!items || !Array.isArray(items)) return;
     
@@ -137,9 +137,6 @@ const exportCollectionWithEnv = (collection, env = 'local') => {
                 const replaced = replaceUrlVariables(h, urls, env);
                 return replaced || h;
               });
-              if (item.request.url.host.length === 1 && item.request.url.host[0] === '' && item.request.url.raw) {
-                item.request.url.host = [item.request.url.raw];
-              }
             }
           }
         }
@@ -175,6 +172,41 @@ const exportCollectionWithEnv = (collection, env = 'local') => {
   if (processedCollection.item) {
     processItems(processedCollection.item);
   }
+  
+  return processedCollection;
+};
+
+const exportEnvironment = (collection, env = 'local') => {
+  const urls = collection.info?.urls || [];
+  
+  const environment = {
+    name: env,
+    values: urls.map(url => ({
+      key: url.name,
+      value: url[env] || '',
+      enabled: true
+    }))
+  };
+  
+  return environment;
+};
+
+const exportCollectionWithVariables = (collection) => {
+  const urls = collection.info?.urls || [];
+  
+  const processedCollection = JSON.parse(JSON.stringify(collection));
+  
+  if (processedCollection.info && processedCollection.info.urls) {
+    delete processedCollection.info.urls;
+  }
+  
+  const variables = urls.map(url => ({
+    key: url.name,
+    value: `{{${url.name}}}`,
+    type: 'string'
+  }));
+  
+  processedCollection.variable = [...(processedCollection.variable || []), ...variables];
   
   return processedCollection;
 };
@@ -505,6 +537,8 @@ export {
   createRequest, 
   exportCollection,
   exportCollectionWithEnv,
+  exportCollectionWithVariables,
+  exportEnvironment,
   importCollection,
   generateStatusCodeTest,
   generateJsonPathTest,

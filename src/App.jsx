@@ -3,7 +3,7 @@ import { Layers, Sun, Moon, Upload, FileJson } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import MainEditor from './components/MainEditor'
 import URLManager from './components/URLManager'
-import { emptyCollection, importCollection, exportCollectionWithEnv } from './lib/domain-logic'
+import { emptyCollection, importCollection, exportCollectionWithEnv, exportCollectionWithVariables, exportEnvironment } from './lib/domain-logic'
 
 function App() {
   const [collection, setCollection] = useState(emptyCollection)
@@ -95,29 +95,30 @@ function App() {
   }
 
   const handleExport = (env = null) => {
-    const environments = env ? [env] : ['local', 'dev', 'prod']
+    const environments = ['local', 'dev', 'prod']
     const urls = collection.info?.urls || []
     
-    if (urls.length === 0) {
-      const blob = new Blob([JSON.stringify(collection, null, 2)], { type: 'application/json' })
+    const downloadFile = (content, filename) => {
+      const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${collection.info.name || 'collection'}.json`
+      a.download = filename
       a.click()
       URL.revokeObjectURL(url)
+    }
+    
+    if (urls.length === 0) {
+      downloadFile(collection, `${collection.info.name || 'collection'}.json`)
       return
     }
     
+    const collectionWithVars = exportCollectionWithVariables(collection)
+    downloadFile(collectionWithVars, `${collection.info.name || 'collection'}.json`)
+    
     environments.forEach(envName => {
-      const processedCollection = exportCollectionWithEnv(collection, envName)
-      const blob = new Blob([JSON.stringify(processedCollection, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${collection.info.name || 'collection'}_${envName}.json`
-      a.click()
-      URL.revokeObjectURL(url)
+      const environment = exportEnvironment(collection, envName)
+      downloadFile(environment, `${collection.info.name || 'collection'}_${envName}.environment.json`)
     })
   }
 
