@@ -14,6 +14,7 @@ function App() {
   const [currentEnv, setCurrentEnv] = useState('local')
   const collectionInputRef = useRef(null)
   const environmentInputRef = useRef(null)
+  const urlsInputRef = useRef(null)
 
   const handleAddUseCase = (name) => {
     setCollection(prev => ({
@@ -129,6 +130,64 @@ function App() {
 
   const handleImportEnvClick = () => {
     environmentInputRef.current?.click()
+  }
+
+  const handleExportUrls = () => {
+    const urls = collection.info?.urls || []
+    if (urls.length === 0) {
+      setImportError('No hay URLs para exportar')
+      return
+    }
+    
+    const urlsData = {
+      urls: urls
+    }
+    
+    const blob = new Blob([JSON.stringify(urlsData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${collection.info.name || 'collection'}_urls.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportUrls = (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.json')) {
+      setImportError('Por favor selecciona un archivo JSON')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const jsonData = JSON.parse(e.target.result)
+        
+        if (!jsonData.urls || !Array.isArray(jsonData.urls)) {
+          setImportError('El archivo no contiene URLs válidas')
+          event.target.value = ''
+          return
+        }
+        
+        setCollection(prev => ({
+          ...prev,
+          info: { ...prev.info, urls: jsonData.urls }
+        }))
+        
+        setImportError(null)
+        event.target.value = ''
+      } catch (error) {
+        console.error('Error importing URLs:', error)
+        setImportError('Error al importar las URLs.')
+      }
+    }
+    reader.onerror = () => {
+      setImportError('Error al leer el archivo')
+    }
+    reader.readAsText(file)
   }
 
   const getUseCaseVariables = (collection, useCaseId) => {
@@ -313,6 +372,31 @@ function App() {
             type="file"
             accept=".json"
             onChange={handleImportEnvironment}
+            className="hidden"
+          />
+          
+          <button
+            onClick={handleExportUrls}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            title="Exportar URLs"
+          >
+            <FileJson className="w-4 h-4" />
+            <span className="hidden sm:inline">Export URLs</span>
+          </button>
+          
+          <button
+            onClick={() => urlsInputRef.current?.click()}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            title="Importar URLs"
+          >
+            <Upload className="w-4 h-4" />
+            <span className="hidden sm:inline">Import URLs</span>
+          </button>
+          <input
+            ref={urlsInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleImportUrls}
             className="hidden"
           />
           
