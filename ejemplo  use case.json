@@ -1,0 +1,51 @@
+{
+  "info": {
+    "name": "exemplo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "urls": [
+      {
+        "name": "EXAMPLE_URL",
+        "local": "https://jsonplaceholder.typicode.com",
+        "dev": "https://jsonplaceholder.typicode.com",
+        "prod": "https://jsonplaceholder.typicode.com"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "caso 1",
+      "item": [
+        {
+          "name": "New Request 1775001138681",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{EXAMPLE_URL}}/posts",
+              "host": [
+                "{{EXAMPLE_URL}}/posts"
+              ],
+              "path": ""
+            },
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"expected response is 200 OK\", function () {\n    pm.response.to.have.status(200);\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ],
+      "protocolProfileBehavior": {}
+    }
+  ]
+}
