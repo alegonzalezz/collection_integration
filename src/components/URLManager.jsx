@@ -16,23 +16,11 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
   }
 
   const handleAddUrl = () => {
-    const urlNames = ['USERS', 'ITEMS', 'AUTH', 'PRODUCTS', 'ORDERS', 'CUSTOMERS']
-    let baseName = 'URL'
-    for (const name of urlNames) {
-      if (!urls.some(u => u.name === name + '_URL')) {
-        baseName = name + '_URL'
-        break
-      }
-    }
-    if (urls.length > 0 && baseName === 'URL') {
-      baseName = `URL_${urls.length + 1}`
-    }
-    
     const newUrl = {
-      name: baseName,
-      local: 'http://localhost:3000',
-      dev: 'https://dev-api.com',
-      prod: 'https://api.com'
+      name: '_URL',
+      local: '',
+      dev: '',
+      prod: ''
     }
     onUpdateUrls([...urls, newUrl])
   }
@@ -49,10 +37,10 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
     onUpdateUrls(updatedUrls)
   }
 
-  const toggleUrlExpand = (urlName) => {
+  const toggleUrlExpand = (index) => {
     setExpandedUrls(prev => ({
       ...prev,
-      [urlName]: !prev[urlName]
+      [index]: !prev[index]
     }))
   }
 
@@ -101,10 +89,10 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
                     >
                       <div 
                         className="flex items-center justify-between p-3 cursor-pointer"
-                        onClick={() => toggleUrlExpand(url.name)}
+                        onClick={() => toggleUrlExpand(index)}
                       >
                         <div className="flex items-center gap-2">
-                          {expandedUrls[url.name] ? (
+                          {expandedUrls[index] ? (
                             <ChevronDown className={`w-4 h-4 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
                           ) : (
                             <ChevronRight className={`w-4 h-4 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
@@ -125,7 +113,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
                         </button>
                       </div>
 
-                      {expandedUrls[url.name] && (
+                      {expandedUrls[index] && (
                         <div className="p-3 pt-0 space-y-2">
                           <div className="flex items-center gap-2 mb-2">
                             <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Name:</span>
@@ -136,6 +124,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
                               className={`flex-1 px-2 py-1.5 rounded text-xs font-mono focus:outline-none ${darkMode ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-700 border-slate-300'}`}
                               placeholder="URL_NAME"
                               onClick={(e) => e.stopPropagation()}
+                              onMouseDown={(e) => e.stopPropagation()}
                             />
                           </div>
 
@@ -150,6 +139,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
                                 className={`flex-1 px-2 py-1.5 rounded text-xs font-mono focus:outline-none ${darkMode ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-white text-slate-700 border-slate-300'}`}
                                 placeholder="http://localhost:3000"
                                 onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
                               />
                             </div>
                             <div className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${currentEnv === 'dev' ? (darkMode ? 'bg-amber-900/30' : 'bg-amber-50') : ''}`}>
@@ -162,6 +152,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
                                 className={`flex-1 px-2 py-1.5 rounded text-xs font-mono focus:outline-none ${darkMode ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-white text-slate-700 border-slate-300'}`}
                                 placeholder="https://dev-api.com"
                                 onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
                               />
                             </div>
                             <div className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${currentEnv === 'prod' ? (darkMode ? 'bg-blue-900/30' : 'bg-blue-50') : ''}`}>
@@ -174,6 +165,7 @@ const URLManager = ({ collection, onUpdateUrls, darkMode, currentEnv = 'local', 
                                 className={`flex-1 px-2 py-1.5 rounded text-xs font-mono focus:outline-none ${darkMode ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-white text-slate-700 border-slate-300'}`}
                                 placeholder="https://api.com"
                                 onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
                               />
                             </div>
                           </div>
