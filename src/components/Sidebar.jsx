@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronRight, ChevronDown, Folder, Plus, FolderOpen, Sparkles, X, Copy } from 'lucide-react'
+import { ChevronRight, ChevronDown, Folder, Plus, FolderOpen, Sparkles, X, Copy, Edit, Trash2 } from 'lucide-react'
 import { createRequest } from '../lib/domain-logic'
 
-const Sidebar = ({ collection, selectedRequestId, selectedUseCaseId, onSelectRequest, onSelectUseCase, onAddUseCase, onAddRequest, onDeleteRequest, onDuplicateUseCase, darkMode }) => {
-  const [newUseCaseName, setNewUseCaseName] = useState('')
-  const [expandedUseCases, setExpandedUseCases] = useState({})
-  const selectedRequestRef = useRef(null)
-  const selectedUseCaseRef = useRef(null)
+const Sidebar = ({ collection, selectedRequestId, selectedUseCaseId, onSelectRequest, onSelectUseCase, onAddUseCase, onAddRequest, onDeleteRequest, onDuplicateUseCase, onRenameUseCase, onDeleteUseCase, darkMode }) => {
+   const [newUseCaseName, setNewUseCaseName] = useState('')
+   const [expandedUseCases, setExpandedUseCases] = useState({})
+   const [renamingUseCase, setRenamingUseCase] = useState(null)
+   const [editUseCaseName, setEditUseCaseName] = useState('')
+   const selectedRequestRef = useRef(null)
+   const selectedUseCaseRef = useRef(null)
 
   useEffect(() => {
     if (selectedRequestId && selectedRequestRef.current) {
@@ -16,26 +18,48 @@ const Sidebar = ({ collection, selectedRequestId, selectedUseCaseId, onSelectReq
     }
   }, [selectedRequestId, selectedUseCaseId])
 
-  const toggleUseCase = (useCaseId) => {
-    setExpandedUseCases(prev => {
-      const newState = {}
-      newState[useCaseId] = !prev[useCaseId]
-      return newState
-    })
-  }
+   const toggleUseCase = (useCaseId) => {
+     setExpandedUseCases(prev => {
+       const newState = {}
+       newState[useCaseId] = !prev[useCaseId]
+       return newState
+     })
+   }
 
-  const handleAddUseCase = () => {
-    if (newUseCaseName.trim()) {
-      onAddUseCase(newUseCaseName.trim())
-      setNewUseCaseName('')
-      setExpandedUseCases(prev => ({ ...prev, [newUseCaseName.trim()]: true }))
-    }
-  }
+   const handleAddUseCase = () => {
+     if (newUseCaseName.trim()) {
+       onAddUseCase(newUseCaseName.trim())
+       setNewUseCaseName('')
+       setExpandedUseCases(prev => ({ ...prev, [newUseCaseName.trim()]: true }))
+     }
+   }
 
-  const handleAddRequest = (useCaseId) => {
-    const request = createRequest('New Request', 'GET', '')
-    onAddRequest(useCaseId, request)
-  }
+   const handleStartRename = (useCaseName) => {
+     setRenamingUseCase(useCaseName)
+     setEditUseCaseName(useCaseName)
+   }
+
+   const handleCancelRename = () => {
+     setRenamingUseCase(null)
+     setEditUseCaseName('')
+   }
+
+   const handleSaveRename = (useCaseName) => {
+     if (editUseCaseName.trim()) {
+       onRenameUseCase(useCaseName, editUseCaseName.trim())
+     }
+     setRenamingUseCase(null)
+     setEditUseCaseName('')
+   }
+
+   const handleEditUseCaseNameChange = (e) => {
+     setEditUseCaseName(e.target.value)
+   }
+
+   const handleAddRequest = (useCaseId) => {
+     const request = createRequest('New Request', 'GET', '')
+     onAddRequest(useCaseId, request)
+   }
 
   const getMethodColor = (method) => {
     switch (method) {
@@ -108,32 +132,81 @@ const Sidebar = ({ collection, selectedRequestId, selectedUseCaseId, onSelectReq
                 className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-all duration-300 group hover:scale-[1.02] ${isSelected ? (darkMode ? 'bg-blue-600/20' : 'bg-blue-50') : ''}`}
                 onClick={() => toggleUseCase(useCase.name)}
               >
-                <div className="flex items-center gap-3 flex-1">
-                  <div className={`p-1.5 rounded-lg transition-all duration-300 ${isExpanded ? (darkMode ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-600') : (darkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500')}`}>
-                    {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                  </div>
-                  {isExpanded ? (
-                    <FolderOpen className={`w-4 h-4 transition-colors duration-300 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} />
-                  ) : (
-                    <Folder className={`w-4 h-4 transition-colors duration-300 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                  )}
-                  <span className={`text-sm font-medium truncate transition-colors duration-300 ${darkMode ? 'text-white' : 'text-slate-800'}`}>{useCase.name}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDuplicateUseCase(useCase.name)
-                    }}
-                    className={`p-1.5 rounded-lg transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100 ${darkMode ? 'text-emerald-400 hover:bg-emerald-900/30' : 'text-emerald-600 hover:bg-emerald-50'}`}
-                    title="Duplicar caso de uso"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
-                  <div className={`px-2 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-                    {useCase.item.length}
-                  </div>
-                </div>
+                 <div className="flex items-center gap-3 flex-1">
+                   <div className={`p-1.5 rounded-lg transition-all duration-300 ${isExpanded ? (darkMode ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-600') : (darkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500')}`}>
+                     {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                   </div>
+                   {isExpanded ? (
+                     <FolderOpen className={`w-4 h-4 transition-colors duration-300 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} />
+                   ) : (
+                     <Folder className={`w-4 h-4 transition-colors duration-300 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                   )}
+                   <span className={`text-sm font-medium truncate transition-colors duration-300 ${darkMode ? 'text-white' : 'text-slate-800'}`}>{useCase.name}</span>
+                 </div>
+                 <div className="flex items-center gap-1">
+                   <button
+                     onClick={(e) => {
+                       e.stopPropagation()
+                       onDuplicateUseCase(useCase.name)
+                     }}
+                     className={`p-1.5 rounded-lg transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100 ${darkMode ? 'text-emerald-400 hover:bg-emerald-900/30' : 'text-emerald-600 hover:bg-emerald-50'}`}
+                     title="Duplicar caso de uso"
+                   >
+                     <Copy className="w-3.5 h-3.5" />
+                   </button>
+                   {renamingUseCase === useCase.name ? (
+                     <>
+                       <input
+                         type="text"
+                         value={editUseCaseName}
+                         onChange={handleEditUseCaseNameChange}
+                         onKeyPress={(e) => e.key === 'Enter' && handleSaveRename(useCase.name)}
+                         onBlur={() => handleSaveRename(useCase.name)}
+                         className={`px-3 py-1 text-sm rounded-lg focus:outline-none border-2 ${darkMode ? 'border-blue-500' : 'border-blue-300'} w-48`}
+                       />
+                       <div className="flex gap-1">
+                         <button
+                           onClick={() => handleSaveRename(useCase.name)}
+                           className={`px-2 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'} hover:scale-105`}
+                         >
+                           Guardar
+                         </button>
+                         <button
+                           onClick={handleCancelRename}
+                           className={`px-2 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'} hover:scale-105`}
+                         >
+                           Cancelar
+                         </button>
+                       </div>
+                     </>
+                   ) : (
+                     <>
+                       <button
+                         onClick={(e) => {
+                           e.stopPropagation()
+                           handleStartRename(useCase.name)
+                         }}
+                         className={`p-1.5 rounded-lg transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100 ${darkMode ? 'text-blue-400 hover:bg-blue-900/30' : 'text-blue-600 hover:bg-blue-50'}`}
+                         title="Renombrar caso de uso"
+                       >
+                         <Edit className="w-3.5 h-3.5" />
+                       </button>
+                       <button
+                         onClick={(e) => {
+                           e.stopPropagation()
+                           onDeleteUseCase(useCase.name)
+                         }}
+                         className={`p-1.5 rounded-lg transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100 ${darkMode ? 'text-rose-400 hover:bg-rose-900/30' : 'text-rose-600 hover:bg-rose-50'}`}
+                         title="Eliminar caso de uso"
+                       >
+                         <Trash2 className="w-3.5 h-3.5" />
+                       </button>
+                     </>
+                   )}
+                   <div className={`px-2 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                     {useCase.item.length}
+                   </div>
+                 </div>
               </div>
               
               {isExpanded && (

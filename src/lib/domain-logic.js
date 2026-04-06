@@ -635,6 +635,53 @@ const duplicateUseCase = (collection, useCaseName) => {
   };
 };
 
+/**
+ * Renombra un caso de uso existente
+ * @param {Object} collection - La colección actual
+ * @param {string} oldName - Nombre actual del caso de uso
+ * @param {string} newName - Nuevo nombre para el caso de uso
+ * @returns {Object} - Nueva colección con el caso de uso renombrado
+ */
+const renameUseCase = (collection, oldName, newName) => {
+  if (!newName || newName.trim() === '') return collection;
+  
+  const newNameTrimmed = newName.trim();
+  const useCaseIndex = collection.item.findIndex(uc => uc.name === oldName);
+  
+  if (useCaseIndex === -1) return collection;
+  
+  // Check if new name already exists (excluding the current use case being renamed)
+  const nameExists = collection.item.some((uc, index) => 
+    uc.name === newNameTrimmed && index !== useCaseIndex
+  );
+  
+  if (nameExists) return collection;
+  
+  const updatedItem = [...collection.item];
+  updatedItem[useCaseIndex] = {
+    ...updatedItem[useCaseIndex],
+    name: newNameTrimmed
+  };
+  
+  return {
+    ...collection,
+    item: updatedItem
+  };
+};
+
+/**
+ * Elimina un caso de uso existente
+ * @param {Object} collection - La colección actual
+ * @param {string} useCaseName - Nombre del caso de uso a eliminar
+ * @returns {Object} - Nueva colección sin el caso de uso especificado
+ */
+const deleteUseCase = (collection, useCaseName) => {
+  return {
+    ...collection,
+    item: collection.item.filter(uc => uc.name !== useCaseName)
+  };
+};
+
 export { 
   emptyCollection, 
   createUseCase, 
@@ -658,5 +705,7 @@ export {
   addUrlEntry,
   updateUrlEntry,
   removeUrlEntry,
-  duplicateUseCase
+  duplicateUseCase,
+  renameUseCase,
+  deleteUseCase
 };

@@ -5,7 +5,7 @@ import Sidebar from './components/Sidebar'
 import MainEditor from './components/MainEditor'
 import URLManager from './components/URLManager'
 import DocumentationViewer from './components/DocumentationViewer'
-import { emptyCollection, importCollection, isEnvironmentFile, exportCollectionWithEnv, exportCollectionWithVariables, exportEnvironment, duplicateUseCase } from './lib/domain-logic'
+import { emptyCollection, importCollection, isEnvironmentFile, exportCollectionWithEnv, exportCollectionWithVariables, exportEnvironment, duplicateUseCase, renameUseCase, deleteUseCase } from './lib/domain-logic'
 
 function App() {
   const [collection, setCollection] = useState(emptyCollection)
@@ -41,6 +41,14 @@ function App() {
 
     const handleDuplicateUseCase = (useCaseName) => {
       setCollection(prev => duplicateUseCase(prev, useCaseName))
+    }
+
+    const handleRenameUseCase = (oldName, newName) => {
+      setCollection(prev => renameUseCase(prev, oldName, newName))
+    }
+
+    const handleDeleteUseCase = (useCaseName) => {
+      setCollection(prev => deleteUseCase(prev, useCaseName))
     }
 
     const handleDeleteRequest = (useCaseId, requestId) => {
@@ -511,6 +519,8 @@ function App() {
                onAddRequest={handleAddRequest}
                onDeleteRequest={handleDeleteRequest}
                onDuplicateUseCase={handleDuplicateUseCase}
+               onRenameUseCase={handleRenameUseCase}
+               onDeleteUseCase={handleDeleteUseCase}
                darkMode={darkMode}
            />
             <main className="flex-1 overflow-hidden">
