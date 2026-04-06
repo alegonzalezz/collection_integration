@@ -591,6 +591,50 @@ const getVariableExtractions = (request) => {
   return extractions;
 };
 
+/**
+ * Genera un nombre único para un caso de uso duplicado
+ * @param {string} originalName - Nombre original del caso de uso
+ * @param {Array} existingNames - Nombres existentes en la colección
+ * @returns {string} - Nombre único para la copia
+ */
+const generateDuplicateName = (originalName, existingNames) => {
+  const basePattern = /^(.+?)(?: \(copia \d+\))?$/;
+  const match = originalName.match(basePattern);
+  const baseName = match ? match[1] : originalName;
+  
+  let counter = 1;
+  let newName = `${baseName} (copia)`;
+  
+  while (existingNames.includes(newName)) {
+    counter++;
+    newName = `${baseName} (copia ${counter})`;
+  }
+  
+  return newName;
+};
+
+/**
+ * Duplica un caso de uso y lo agrega al final de la lista
+ * @param {Object} collection - La colección actual
+ * @param {string} useCaseName - Nombre del caso de uso a duplicar
+ * @returns {Object} - Nueva colección con el caso de uso duplicado
+ */
+const duplicateUseCase = (collection, useCaseName) => {
+  const useCaseIndex = collection.item.findIndex(uc => uc.name === useCaseName);
+  if (useCaseIndex === -1) return collection;
+  
+  const originalUseCase = collection.item[useCaseIndex];
+  const duplicatedUseCase = JSON.parse(JSON.stringify(originalUseCase));
+  
+  const existingNames = collection.item.map(uc => uc.name);
+  duplicatedUseCase.name = generateDuplicateName(originalUseCase.name, existingNames);
+  
+  return {
+    ...collection,
+    item: [...collection.item, duplicatedUseCase]
+  };
+};
+
 export { 
   emptyCollection, 
   createUseCase, 
@@ -613,5 +657,6 @@ export {
   createUrlEntry,
   addUrlEntry,
   updateUrlEntry,
-  removeUrlEntry
+  removeUrlEntry,
+  duplicateUseCase
 };

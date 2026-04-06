@@ -5,7 +5,7 @@ import Sidebar from './components/Sidebar'
 import MainEditor from './components/MainEditor'
 import URLManager from './components/URLManager'
 import DocumentationViewer from './components/DocumentationViewer'
-import { emptyCollection, importCollection, isEnvironmentFile, exportCollectionWithEnv, exportCollectionWithVariables, exportEnvironment } from './lib/domain-logic'
+import { emptyCollection, importCollection, isEnvironmentFile, exportCollectionWithEnv, exportCollectionWithVariables, exportEnvironment, duplicateUseCase } from './lib/domain-logic'
 
 function App() {
   const [collection, setCollection] = useState(emptyCollection)
@@ -28,18 +28,22 @@ function App() {
 
 
 
-  const handleAddRequest = (useCaseId, request) => {
-    setCollection(prev => ({
-      ...prev,
-      item: prev.item.map(uc =>
-        uc.name === useCaseId
-          ? { ...uc, item: [...uc.item, request] }
-          : uc
-      )
-    }))
-  }
+    const handleAddRequest = (useCaseId, request) => {
+      setCollection(prev => ({
+        ...prev,
+        item: prev.item.map(uc =>
+          uc.name === useCaseId
+            ? { ...uc, item: [...uc.item, request] }
+            : uc
+        )
+      }))
+    }
 
-  const handleDeleteRequest = (useCaseId, requestId) => {
+    const handleDuplicateUseCase = (useCaseName) => {
+      setCollection(prev => duplicateUseCase(prev, useCaseName))
+    }
+
+    const handleDeleteRequest = (useCaseId, requestId) => {
     const cleanRequestId = selectedRequestId
     setCollection(prev => ({
       ...prev,
@@ -497,17 +501,18 @@ function App() {
           )}
 
           <div className="flex flex-1 overflow-hidden">
-            <Sidebar
-              collection={collection}
-              selectedRequestId={selectedRequestId}
-              selectedUseCaseId={selectedUseCaseId}
-              onSelectRequest={setSelectedRequestId}
-              onSelectUseCase={setSelectedUseCaseId}
-              onAddUseCase={handleAddUseCase}
-              onAddRequest={handleAddRequest}
-              onDeleteRequest={handleDeleteRequest}
-              darkMode={darkMode}
-            />
+           <Sidebar
+               collection={collection}
+               selectedRequestId={selectedRequestId}
+               selectedUseCaseId={selectedUseCaseId}
+               onSelectRequest={setSelectedRequestId}
+               onSelectUseCase={setSelectedUseCaseId}
+               onAddUseCase={handleAddUseCase}
+               onAddRequest={handleAddRequest}
+               onDeleteRequest={handleDeleteRequest}
+               onDuplicateUseCase={handleDuplicateUseCase}
+               darkMode={darkMode}
+           />
             <main className="flex-1 overflow-hidden">
               {selectedRequestId ? (
                 <MainEditor

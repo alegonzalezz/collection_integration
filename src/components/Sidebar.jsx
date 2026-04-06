@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronRight, ChevronDown, Folder, Plus, FolderOpen, Sparkles, X } from 'lucide-react'
+import { ChevronRight, ChevronDown, Folder, Plus, FolderOpen, Sparkles, X, Copy } from 'lucide-react'
 import { createRequest } from '../lib/domain-logic'
 
-const Sidebar = ({ collection, selectedRequestId, selectedUseCaseId, onSelectRequest, onSelectUseCase, onAddUseCase, onAddRequest, onDeleteRequest, darkMode }) => {
+const Sidebar = ({ collection, selectedRequestId, selectedUseCaseId, onSelectRequest, onSelectUseCase, onAddUseCase, onAddRequest, onDeleteRequest, onDuplicateUseCase, darkMode }) => {
   const [newUseCaseName, setNewUseCaseName] = useState('')
   const [expandedUseCases, setExpandedUseCases] = useState({})
   const selectedRequestRef = useRef(null)
@@ -119,8 +119,20 @@ const Sidebar = ({ collection, selectedRequestId, selectedUseCaseId, onSelectReq
                   )}
                   <span className={`text-sm font-medium truncate transition-colors duration-300 ${darkMode ? 'text-white' : 'text-slate-800'}`}>{useCase.name}</span>
                 </div>
-                <div className={`px-2 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-                  {useCase.item.length}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDuplicateUseCase(useCase.name)
+                    }}
+                    className={`p-1.5 rounded-lg transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100 ${darkMode ? 'text-emerald-400 hover:bg-emerald-900/30' : 'text-emerald-600 hover:bg-emerald-50'}`}
+                    title="Duplicar caso de uso"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                  <div className={`px-2 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                    {useCase.item.length}
+                  </div>
                 </div>
               </div>
               
