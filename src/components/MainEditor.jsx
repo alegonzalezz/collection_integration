@@ -22,12 +22,32 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
   // Campos comunes
   const [testName, setTestName] = useState('')
   
-  // Campos específicos por tipo
-  const [statusCode, setStatusCode] = useState('200')
-  const [jsonPath, setJsonPath] = useState('')
-  const [expectedValue, setExpectedValue] = useState('')
-  const [arrayPath, setArrayPath] = useState('')
-  const [arrayLength, setArrayLength] = useState('')
+// Campos específicos por tipo
+const [statusCode, setStatusCode] = useState('200')
+const [jsonPath, setJsonPath] = useState('')
+const [expectedValue, setExpectedValue] = useState('')
+// Nuevo: estado para el tipado de Valor Esperado
+const [isExpectedString, setIsExpectedString] = useState(false)
+const [expectedType, setExpectedType] = useState('')
+const [arrayPath, setArrayPath] = useState('')
+
+// Helper para parseo de tipo
+const detectExpectedType = (value, isStringForced) => {
+  if (isStringForced) return 'string';
+  if (value.trim() === '') return '';
+  if (value === 'null') return 'null';
+  if (value === 'true' || value === 'false') return 'boolean';
+  if (!isNaN(value) && value.trim() !== '') return 'number';
+  return 'string';
+}
+
+// Actualizar tipo detectado cada vez que cambia el valor (o el switch de string)
+useEffect(() => {
+  setExpectedType(detectExpectedType(expectedValue, isExpectedString));
+}, [expectedValue, isExpectedString]);
+
+const [arrayLength, setArrayLength] = useState('')
+
 
   // Función para extraer variables de los tests
   const extractVariables = (tests) => {
@@ -79,7 +99,7 @@ const MainEditor = ({ collection, selectedRequestId, selectedUseCaseId, onUpdate
         return generateStatusCodeTest(testName.trim(), parseInt(statusCode, 10) || 200)
       case 'json':
         if (!jsonPath.trim()) return ''
-        return generateJsonPathTest(testName.trim(), jsonPath.trim(), expectedValue.trim())
+        return generateJsonPathTest(testName.trim(), jsonPath.trim(), expectedValue.trim(), isExpectedString)
       case 'array':
         if (!arrayPath.trim() || !arrayLength) return ''
         return generateArrayLengthTest(testName.trim(), arrayPath.trim(), parseInt(arrayLength, 10) || 0)
@@ -686,25 +706,47 @@ if (!requestData) {
                         Valor Esperado
                       </label>
                       <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={expectedValue}
-                          onChange={(e) => setExpectedValue(e.target.value)}
-                          placeholder="Ej: John Doe, 123, true"
-                          className={`flex-1 px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setExpectedValue('null')}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                            expectedValue === 'null'
-                              ? (darkMode ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white')
-                              : (darkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')
-                          }`}
-                        >
-                          null
-                        </button>
-                      </div>
+  <input
+    type="text"
+    value={expectedValue}
+    onChange={(e) => setExpectedValue(e.target.value)}
+    placeholder="Ej: John Doe, 123, true"
+    className={`flex-1 px-3 py-2 rounded-lg text-sm focus:outline-none transition-all duration-300 ${darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500 border' : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 border'}`}
+  />
+  <button
+    type="button"
+    className={`px-3 py-2 rounded-lg text-xs font-semibold border-2 transition-all duration-300 ${isExpectedString ? (darkMode ? 'bg-blue-700 text-white border-blue-300' : 'bg-blue-100 border-blue-500 text-blue-700') : (darkMode ? 'bg-slate-700 text-slate-300 border-slate-500' : 'bg-slate-100 border-slate-300 text-slate-500')} hover:scale-105`}
+    style={{ minWidth: 75 }}
+    onClick={() => setIsExpectedString(v => !v)}
+    title="Fuerza que el valor sea string, aunque parezca número, booleano, etc."
+  >
+    Es string
+  </button>
+  <button
+    type="button"
+    onClick={() => setExpectedValue('null')}
+    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+      expectedValue === 'null'
+        ? (darkMode ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white')
+        : (darkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')
+    }`}
+  >
+    null
+  </button>
+  <div className={`px-2 py-1 rounded-lg text-xs font-medium border ml-2 self-center ${
+      isExpectedString 
+        ? (darkMode ? 'bg-blue-900/30 text-blue-300 border-blue-700' : 'bg-blue-50 text-blue-800 border-blue-200')
+        : expectedType === 'boolean'
+          ? (darkMode ? 'bg-emerald-900/30 text-emerald-300 border-emerald-800' : 'bg-emerald-50 text-emerald-900 border-emerald-200')
+        : expectedType === 'number'
+          ? (darkMode ? 'bg-cyan-900/30 text-cyan-300 border-cyan-800' : 'bg-cyan-50 text-cyan-900 border-cyan-200')
+        : expectedType === 'null'
+          ? (darkMode ? 'bg-purple-900/30 text-purple-200 border-purple-700' : 'bg-purple-50 text-purple-900 border-purple-200')
+        : (darkMode ? 'bg-slate-700 text-slate-300 border-slate-500' : 'bg-slate-100 text-slate-500 border-slate-300')
+    }`}>
+    {isExpectedString ? 'string (forzado)' : expectedType || 'tipo: ?'}
+  </div>
+</div>
                     </div>
                   </div>
                 )}

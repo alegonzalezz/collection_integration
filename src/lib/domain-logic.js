@@ -221,14 +221,18 @@ const generateStatusCodeTest = (testName, statusCode) => {
  * @param {string} expectedValue - Valor esperado
  * @returns {string} - Código JavaScript del test
  */
-const generateJsonPathTest = (testName, jsonPath, expectedValue) => {
-  let escapedValue
-  if (expectedValue === 'null') {
-    escapedValue = null
-  } else if (typeof expectedValue === 'string') {
-    escapedValue = `"${expectedValue}"`
+const generateJsonPathTest = (testName, jsonPath, expectedValue, isExpectedString) => {
+  let escapedValue;
+  if (isExpectedString) {
+    escapedValue = JSON.stringify(expectedValue);
+  } else if (expectedValue === 'null') {
+    escapedValue = 'null';
+  } else if (expectedValue === 'true' || expectedValue === 'false') {
+    escapedValue = expectedValue;
+  } else if (!isNaN(expectedValue) && String(expectedValue).trim() !== '') {
+    escapedValue = expectedValue;
   } else {
-    escapedValue = expectedValue
+    escapedValue = JSON.stringify(expectedValue);
   }
   
   return `pm.test("${testName}", function () {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.${jsonPath}).to.eql(${escapedValue});\n});`;
